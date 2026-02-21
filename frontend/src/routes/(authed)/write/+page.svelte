@@ -34,7 +34,7 @@
 	import TemplateDropdown from '$lib/TemplateDropdown.svelte';
 	import { insertTemplate } from '$lib/templateStore';
 	import ALookBack from '$lib/ALookBack.svelte';
-	import { parseMarkdown, revealSpoilerFromClick } from '$lib/markdown.js';
+	import { parseMarkdown, spoilerRevealAction } from '$lib/markdown.js';
 	import { getTranslate, getTolgee } from '@tolgee/svelte';
 	import DemoModeText from '$lib/DemoModeText.svelte';
 
@@ -176,10 +176,6 @@
 			}
 		}
 	});
-
-	function onMarkdownClick(event) {
-		revealSpoilerFromClick(event, $t('markdown.spoiler.confirm'));
-	}
 
 	function on_key_up(event) {
 		if (!isMac && event.key === 'Alt') {
@@ -2053,7 +2049,7 @@
 							{$t('modal.history.newer')}
 						</button>
 					</div>
-					<div class="text mt-2" onclick={onMarkdownClick}>
+					<div class="text mt-2" use:spoilerRevealAction={$t('markdown.spoiler.confirm')}>
 						{@html parseMarkdown(history[historySelected]?.text || '', { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
 					</div>
 				</div>

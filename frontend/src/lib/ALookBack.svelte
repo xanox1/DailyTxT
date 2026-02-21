@@ -1,5 +1,5 @@
 <script>
-	import { parseMarkdown, revealSpoilerFromClick } from './markdown.js';
+	import { parseMarkdown, spoilerRevealAction } from './markdown.js';
 	import { selectedDate } from './calendarStore';
 	import { getTranslate, getTolgee } from '@tolgee/svelte';
 	import { onMount } from 'svelte';
@@ -35,9 +35,6 @@
 		}
 	}
 
-	function onMarkdownClick(event) {
-		revealSpoilerFromClick(event, $t('markdown.spoiler.confirm'));
-	}
 </script>
 
 <!-- svelte-ignore a11y_consider_explicit_label -->
@@ -47,7 +44,7 @@
 			<div><b>{log?.year}</b></div>
 			<div><em><b>{log?.years_old}</b> {$t('aLookBack.Year_one_letter')}</em></div>
 		</div>
-		<div class="html-preview p-1" onclick={onMarkdownClick}>
+		<div class="html-preview p-1" use:spoilerRevealAction={$t('markdown.spoiler.confirm')}>
 			{@html parseMarkdown(log?.text, { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
 		</div>
 	</div>
@@ -78,7 +75,7 @@
 				</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<div class="modal-body" onclick={onMarkdownClick}>
+			<div class="modal-body" use:spoilerRevealAction={$t('markdown.spoiler.confirm')}>
 				{@html parseMarkdown(log?.text, { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
 			</div>
 			<div class="modal-footer">

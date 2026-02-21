@@ -50,3 +50,22 @@ export function revealSpoilerFromClick(event, confirmationText = 'This content i
 		spoilerBlock.dataset.revealed = 'true';
 	}
 }
+
+export function spoilerRevealAction(node, confirmationText = 'This content is hidden as a spoiler. Reveal it?') {
+	let confirmText = confirmationText;
+
+	const clickHandler = (event) => {
+		revealSpoilerFromClick(event, confirmText);
+	};
+
+	node.addEventListener('click', clickHandler);
+
+	return {
+		update(newConfirmationText) {
+			confirmText = newConfirmationText;
+		},
+		destroy() {
+			node.removeEventListener('click', clickHandler);
+		}
+	};
+}

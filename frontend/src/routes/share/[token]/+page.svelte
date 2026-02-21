@@ -1,17 +1,13 @@
 <script>
 	import { API_URL } from '$lib/APIurl.js';
 	import axios from 'axios';
-	import { parseMarkdown, revealSpoilerFromClick } from '$lib/markdown.js';
+	import { parseMarkdown, spoilerRevealAction } from '$lib/markdown.js';
 	import { page } from '$app/state';
 	import { untrack } from 'svelte';
 	import { getTranslate, getTolgee } from '@tolgee/svelte';
 
 	const { t } = getTranslate();
 	const tolgee = getTolgee(['language']);
-
-	function onMarkdownClick(event) {
-		revealSpoilerFromClick(event, $t('markdown.spoiler.confirm'));
-	}
 
 	let token = $derived(page.params.token);
 
@@ -325,7 +321,7 @@
 								</div>
 								<div class="logContent flex-grow-1">
 									{#if log.text && log.text !== ''}
-										<div class="text" onclick={onMarkdownClick}>
+										<div class="text" use:spoilerRevealAction={$t('markdown.spoiler.confirm')}>
 											{@html parseMarkdown(log.text, { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
 										</div>
 									{/if}

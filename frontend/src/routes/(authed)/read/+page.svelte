@@ -5,7 +5,7 @@
 	import DatepickerLogic from '$lib/DatepickerLogic.svelte';
 	import Sidenav from '$lib/Sidenav.svelte';
 	import { onMount } from 'svelte';
-	import { parseMarkdown, revealSpoilerFromClick } from '$lib/markdown.js';
+	import { parseMarkdown, spoilerRevealAction } from '$lib/markdown.js';
 	import Tag from '$lib/Tag.svelte';
 	import { tags, tagsLoaded } from '$lib/tagStore.js';
 	import FileList from '$lib/FileList.svelte';
@@ -23,10 +23,6 @@
 		config.withCredentials = true;
 		return config;
 	});
-
-	function onMarkdownClick(event) {
-		revealSpoilerFromClick(event, $t('markdown.spoiler.confirm'));
-	}
 
 	let logs = $state([]);
 
@@ -488,7 +484,7 @@
 						<div class="logContent flex-grow-1 d-flex flex-row">
 							<div class="flex-grow-1 middle">
 								{#if log.text && log.text !== ''}
-									<div class="text" onclick={onMarkdownClick}>
+									<div class="text" use:spoilerRevealAction={$t('markdown.spoiler.confirm')}>
 										{@html parseMarkdown(log.text, { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
 									</div>
 								{/if}
