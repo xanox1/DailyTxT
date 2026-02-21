@@ -258,6 +258,8 @@
 	</div>
 	<div
 		class="calendar-container"
+		role="region"
+		aria-label="Calendar"
 		ontouchstart={onTouchStart}
 		ontouchmove={onTouchMove}
 		ontouchend={onTouchEnd}

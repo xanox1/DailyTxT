@@ -22,7 +22,6 @@
 		faBars,
 		faEyeSlash
 	} from '@fortawesome/free-solid-svg-icons';
-	import { icon } from '@fortawesome/fontawesome-svg-core';
 	import Fa from 'svelte-fa';
 	import { v7 as uuidv7 } from 'uuid';
 	import { slide, fade } from 'svelte/transition';
@@ -95,7 +94,11 @@
 		spoilerToolbarButton.type = 'button';
 		spoilerToolbarButton.className = 'TMCommandButton TMCommandButton_Inactive';
 		spoilerToolbarButton.classList.add('spoiler-toolbar-btn');
-		spoilerToolbarButton.innerHTML = icon(faEyeSlash).html.join('');
+		const [width, height, , , svgPathData] = faEyeSlash.icon;
+		const pathMarkup = Array.isArray(svgPathData)
+			? svgPathData.map((pathData) => `<path d="${pathData}"></path>`).join('')
+			: `<path d="${svgPathData}"></path>`;
+		spoilerToolbarButton.innerHTML = `<svg aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">${pathMarkup}</svg>`;
 		spoilerToolbarButton.title = $t('markdown.spoiler.reveal_button');
 		spoilerToolbarButton.setAttribute('aria-label', $t('markdown.spoiler.reveal_button'));
 		spoilerToolbarButton.dataset.spoilerToolbarButton = 'true';
@@ -1526,6 +1529,8 @@
 			<div class="glass-shadow input-area">
 				<div
 					class="d-flex flex-row textAreaHeader glass"
+					role="region"
+					aria-label="Log date header"
 					ontouchstart={onHeaderTouchStart}
 					ontouchend={onHeaderTouchEnd}
 				>
