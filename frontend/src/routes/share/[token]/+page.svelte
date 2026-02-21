@@ -429,6 +429,14 @@
 		word-wrap: anywhere;
 	}
 
+	.text :global(h1) {
+		font-size: 1.5rem;
+	}
+
+	.text :global(h2) {
+		font-size: 1.25rem;
+	}
+
 	.logContent {
 		width: 100%;
 		flex-wrap: wrap;

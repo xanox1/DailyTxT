@@ -112,8 +112,8 @@
 	onMount(() => {
 		calculateResize();
 
-		// if on login page, generate neon mesh
-		if (page.url.pathname.endsWith('/login')) {
+		// if on login or shared read-only page, generate neon mesh
+		if (page.url.pathname.endsWith('/login') || page.url.pathname.startsWith(resolve('/share/'))) {
 			generateNeonMesh($darkMode);
 		}
 
@@ -250,6 +250,12 @@
 			deferredInstallPrompt = null;
 			showInstallToast = false;
 		});
+	});
+
+	$effect(() => {
+		if (page.url.pathname.startsWith(resolve('/share/'))) {
+			generateNeonMesh($darkMode);
+		}
 	});
 
 	async function installPWA() {

@@ -602,6 +602,14 @@
 		word-wrap: anywhere;
 	}
 
+	.text :global(h1) {
+		font-size: 1.5rem;
+	}
+
+	.text :global(h2) {
+		font-size: 1.25rem;
+	}
+
 	.tags {
 		gap: 0.5rem;
 	}

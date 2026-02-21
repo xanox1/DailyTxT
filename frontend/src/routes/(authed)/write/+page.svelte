@@ -2237,6 +2237,22 @@
 		word-wrap: anywhere;
 	}
 
+	.text :global(h1) {
+		font-size: 1.5rem;
+	}
+
+	.text :global(h2) {
+		font-size: 1.25rem;
+	}
+
+	:global(.TinyMDE h1) {
+		font-size: 1.5rem;
+	}
+
+	:global(.TinyMDE h2) {
+		font-size: 1.25rem;
+	}
+
 	.history-btn {
 		white-space: nowrap;
 	}
