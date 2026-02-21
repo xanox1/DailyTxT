@@ -19,8 +19,10 @@
 		faArrowLeft,
 		faArrowRight,
 		faTrash,
-		faBars
+		faBars,
+		faEyeSlash
 	} from '@fortawesome/free-solid-svg-icons';
+	import { icon } from '@fortawesome/fontawesome-svg-core';
 	import Fa from 'svelte-fa';
 	import { v7 as uuidv7 } from 'uuid';
 	import { slide, fade } from 'svelte/transition';
@@ -47,6 +49,59 @@
 	});
 
 	let cancelDownload = new AbortController();
+	let spoilerToolbarButton;
+
+	function insertSpoilerMarkup() {
+		const editorElement = document.querySelector('.TinyMDE');
+		if (!editorElement) {
+			return;
+		}
+
+		editorElement.focus();
+
+		const selection = window.getSelection();
+		const hasSelectionInEditor =
+			selection &&
+			selection.rangeCount > 0 &&
+			editorElement.contains(selection.anchorNode) &&
+			editorElement.contains(selection.focusNode);
+
+		const selectedText = hasSelectionInEditor ? selection.toString() : '';
+		const spoilerText = selectedText
+			? `:::spoiler\n${selectedText}\n:::`
+			: ':::spoiler\n\n:::';
+
+		if (hasSelectionInEditor) {
+			document.execCommand('insertText', false, spoilerText);
+			editorElement.dispatchEvent(new Event('input', { bubbles: true }));
+			return;
+		}
+
+		const content = currentLog || '';
+		const separator = content.length > 0 && !content.endsWith('\n') ? '\n\n' : '';
+		const nextContent = `${content}${separator}${spoilerText}`;
+		tinyMDE.setContent(nextContent);
+		currentLog = nextContent;
+		handleInput();
+	}
+
+	function addSpoilerToolbarButton() {
+		const commandBar = document.querySelector('.TMCommandBar');
+		if (!commandBar || commandBar.querySelector('[data-spoiler-toolbar-button="true"]')) {
+			return;
+		}
+
+		spoilerToolbarButton = document.createElement('button');
+		spoilerToolbarButton.type = 'button';
+		spoilerToolbarButton.className = 'TMCommandButton TMCommandButton_Inactive';
+		spoilerToolbarButton.classList.add('spoiler-toolbar-btn');
+		spoilerToolbarButton.innerHTML = icon(faEyeSlash).html.join('');
+		spoilerToolbarButton.title = $t('markdown.spoiler.reveal_button');
+		spoilerToolbarButton.setAttribute('aria-label', $t('markdown.spoiler.reveal_button'));
+		spoilerToolbarButton.dataset.spoilerToolbarButton = 'true';
+		spoilerToolbarButton.addEventListener('click', insertSpoilerMarkup);
+		commandBar.appendChild(spoilerToolbarButton);
+	}
 
 	let tinyMDE;
 	let isMobile = false;
@@ -65,6 +120,7 @@
 
 		tinyMDE = new TinyMDE.Editor({ element: 'editor', content: '' });
 		new TinyMDE.CommandBar({ element: 'toolbar', editor: tinyMDE });
+		addSpoilerToolbarButton();
 		document.getElementsByClassName('TinyMDE')[0].classList.add('focus-ring');
 
 		tinyMDE.addEventListener('change', (event) => {
@@ -84,6 +140,13 @@
 			(popoverTriggerEl) =>
 				new bootstrap.Popover(popoverTriggerEl, { trigger: 'focus', html: true })
 		);
+
+		return () => {
+			if (spoilerToolbarButton) {
+				spoilerToolbarButton.removeEventListener('click', insertSpoilerMarkup);
+				spoilerToolbarButton = null;
+			}
+		};
 	});
 
 	$effect(() => {
@@ -2248,9 +2311,9 @@
 	.text :global(blockquote),
 	:global(.TinyMDE blockquote) {
 		font-style: italic;
-		border-top: 1px solid currentColor;
-		border-bottom: 1px solid currentColor;
-		background-color: var(--bs-tertiary-bg);
+		color: var(--bs-secondary-color);
+		border-top: 1px solid var(--bs-border-color);
+		border-bottom: 1px solid var(--bs-border-color);
 		margin: 1rem 0;
 		padding: 0.5rem 0.75rem;
 	}
@@ -2477,6 +2540,12 @@
 
 	:global(.TMCommandButton) {
 		border-radius: 3px;
+	}
+
+	:global(.TMCommandButton.spoiler-toolbar-btn svg) {
+		width: 0.85rem;
+		height: 0.85rem;
+		display: block;
 	}
 
 	:global(body[data-bs-theme='dark'] .TinyMDE) {

@@ -607,9 +607,9 @@
 
 	.text :global(blockquote) {
 		font-style: italic;
-		border-top: 1px solid currentColor;
-		border-bottom: 1px solid currentColor;
-		background-color: var(--bs-tertiary-bg);
+		color: var(--bs-secondary-color);
+		border-top: 1px solid var(--bs-border-color);
+		border-bottom: 1px solid var(--bs-border-color);
 		margin: 1rem 0;
 		padding: 0.5rem 0.75rem;
 	}
