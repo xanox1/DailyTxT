@@ -109,6 +109,10 @@
 
 	let isStandalone = false;
 
+	function isGuestViewRoute() {
+		return page.url.pathname.startsWith(resolve('/share/'));
+	}
+
 	onMount(() => {
 		calculateResize();
 
@@ -119,7 +123,14 @@
 
 		// helper to present the PWA update toast and wire the reload button once
 		function showPwaUpdateToast() {
+			if (isGuestViewRoute()) {
+				return;
+			}
+
 			setTimeout(() => {
+				if (isGuestViewRoute()) {
+					return;
+				}
 				const toast = new bootstrap.Toast(document.getElementById('toastPwaUpdate'), {
 					autohide: false
 				});
@@ -234,15 +245,7 @@
 			// Prevent the mini-infobar and save for triggering later
 			e.preventDefault();
 			deferredInstallPrompt = e;
-			if (!isStandalone) {
-				// show toast
-				setTimeout(() => {
-					const toast = new bootstrap.Toast(document.getElementById('toastPwaInstall'), {
-						autohide: false
-					});
-					toast.show();
-				}, 500);
-			}
+			showInstallToast = !isStandalone;
 		});
 
 		// Hide install banner when app gets installed
@@ -250,6 +253,33 @@
 			deferredInstallPrompt = null;
 			showInstallToast = false;
 		});
+	});
+
+	$effect(() => {
+		if (isStandalone || !deferredInstallPrompt || isGuestViewRoute()) {
+			showInstallToast = false;
+			const installToastEl = document.getElementById('toastPwaInstall');
+			if (installToastEl) {
+				const toast = bootstrap.Toast.getInstance(installToastEl);
+				toast?.hide();
+			}
+			const updateToastEl = document.getElementById('toastPwaUpdate');
+			if (updateToastEl) {
+				const updateToast = bootstrap.Toast.getInstance(updateToastEl);
+				updateToast?.hide();
+			}
+			return;
+		}
+
+		if (showInstallToast) {
+			setTimeout(() => {
+				if (isGuestViewRoute()) return;
+				const toast = new bootstrap.Toast(document.getElementById('toastPwaInstall'), {
+					autohide: false
+				});
+				toast.show();
+			}, 500);
+		}
 	});
 
 	$effect(() => {
