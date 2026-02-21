@@ -437,6 +437,16 @@
 		font-size: 1.25rem;
 	}
 
+	.text :global(blockquote) {
+		font-style: italic;
+		border-top: 1px solid currentColor;
+		border-bottom: 1px solid currentColor;
+		margin: 1rem 0 1rem 0.5rem;
+		padding-left: 0.75rem;
+		padding-top: 0.5rem;
+		padding-bottom: 0.5rem;
+	}
+
 	.logContent {
 		width: 100%;
 		flex-wrap: wrap;

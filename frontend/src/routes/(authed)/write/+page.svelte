@@ -2245,6 +2245,17 @@
 		font-size: 1.25rem;
 	}
 
+	.text :global(blockquote),
+	:global(.TinyMDE blockquote) {
+		font-style: italic;
+		border-top: 1px solid currentColor;
+		border-bottom: 1px solid currentColor;
+		margin: 1rem 0 1rem 0.5rem;
+		padding-left: 0.75rem;
+		padding-top: 0.5rem;
+		padding-bottom: 0.5rem;
+	}
+
 	:global(.TinyMDE h1) {
 		font-size: 1.5rem;
 	}
