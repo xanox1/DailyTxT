@@ -2,6 +2,7 @@
 	import { API_URL } from '$lib/APIurl.js';
 	import axios from 'axios';
 	import { parseMarkdown, spoilerRevealAction } from '$lib/markdown.js';
+	import ImageViewer from '$lib/ImageViewer.svelte';
 	import { page } from '$app/state';
 	import { untrack } from 'svelte';
 	import { getTranslate, getTolgee } from '@tolgee/svelte';
@@ -209,6 +210,20 @@
 		const ext = filename?.split('.').pop()?.toLowerCase();
 		return imageExtensions.includes(ext);
 	}
+
+	function getImageEntries(files = []) {
+		return files
+			.filter((file) => isImage(file.filename))
+			.map((file) => ({
+				uuid_filename: file.uuid_filename,
+				filename: file.filename,
+				src: getImageSrc(file.uuid_filename)
+			}));
+	}
+
+	function getNonImageEntries(files = []) {
+		return files.filter((file) => !isImage(file.filename));
+	}
 </script>
 
 <svelte:head>
@@ -326,27 +341,27 @@
 										</div>
 									{/if}
 									{#if log.files && log.files.length > 0}
-										<div class="mt-2 d-flex flex-column gap-1 files">
-											{#each log.files as file}
-												{#if isImage(file.filename)}
-													<div class="shared-image-wrapper">
-														<img
-															src={getImageSrc(file.uuid_filename)}
-															alt={file.filename}
-															class="shared-image"
-															loading="lazy"
-														/>
-													</div>
-												{:else}
+										{@const imageEntries = getImageEntries(log.files)}
+										{@const nonImageEntries = getNonImageEntries(log.files)}
+
+										{#if imageEntries.length > 0}
+											<div class="mt-2 files">
+												<ImageViewer images={imageEntries} showFilename={false} />
+											</div>
+										{/if}
+
+										{#if nonImageEntries.length > 0}
+											<div class="mt-2 d-flex flex-column gap-1 files">
+												{#each nonImageEntries as file}
 													<button
 														class="btn btn-sm btn-outline-secondary text-start fileBtn"
 														onclick={() => downloadFile(file.uuid_filename, file.filename)}
 													>
 														📎 {file.filename}
 													</button>
-												{/if}
-											{/each}
-										</div>
+												{/each}
+											</div>
+										{/if}
 									{/if}
 								</div>
 							</div>
@@ -461,17 +476,6 @@
 		width: 100%;
 		flex-wrap: wrap;
 		overflow-x: auto;
-	}
-
-	.shared-image {
-		max-width: 100%;
-		max-height: 400px;
-		border-radius: 8px;
-		object-fit: contain;
-	}
-
-	.shared-image-wrapper {
-		margin-top: 0.5rem;
 	}
 
 	#scrollArea {

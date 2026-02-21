@@ -7,7 +7,7 @@
 
 	const { t } = getTranslate();
 
-	let { images } = $props(); // Array of image objects with `src`, `filename`, and `uuid_filename`
+	let { images, showFilename = true } = $props(); // Array of image objects with `src`, `filename`, and `uuid_filename`
 
 	let fullscreen = $state(false);
 	let currentIndex = $state(0);
@@ -138,7 +138,9 @@
 				{/if}
 			{/key}
 			<div class="image-info">
-				<span class="image-name">{images[currentIndex].filename}</span>
+				{#if showFilename}
+					<span class="image-name">{images[currentIndex].filename}</span>
+				{/if}
 				<a
 					class="download-btn"
 					href={images[currentIndex].src}
