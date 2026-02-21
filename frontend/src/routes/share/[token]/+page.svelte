@@ -145,7 +145,7 @@
 		try {
 			await axios.post(
 				API_URL + '/share/requestVerificationCode',
-				{ email: verificationEmail },
+				{ email: verificationEmail, language: $tolgee.getLanguage() },
 				{ params: { token } }
 			);
 			codeSent = true;

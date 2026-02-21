@@ -182,19 +182,50 @@ func SendShareVerificationEmail(toEmail, code string) error {
 		Password: Settings.SMTPPassword,
 		From:     Settings.SMTPFrom,
 	}
-	return SendShareVerificationEmailWithSettings(settings, toEmail, code)
+	return SendShareVerificationEmailWithSettingsAndLanguage(settings, toEmail, code, "en")
 }
 
 func SendShareVerificationEmailForUser(userID int, toEmail, code string) error {
+	return SendShareVerificationEmailForUserWithLanguage(userID, toEmail, code, "en")
+}
+
+func SendShareVerificationEmailForUserWithLanguage(userID int, toEmail, code, language string) error {
 	settings, _, err := GetEffectiveShareSMTPSettings(userID)
 	if err != nil {
 		return err
 	}
 
-	return SendShareVerificationEmailWithSettings(settings, toEmail, code)
+	return SendShareVerificationEmailWithSettingsAndLanguage(settings, toEmail, code, language)
 }
 
 func SendShareVerificationEmailWithSettings(settings ShareSMTPSettings, toEmail, code string) error {
+	return SendShareVerificationEmailWithSettingsAndLanguage(settings, toEmail, code, "en")
+}
+
+func normalizeShareEmailLanguage(language string) string {
+	firstToken := strings.TrimSpace(strings.Split(strings.ToLower(language), ",")[0])
+	firstToken = strings.TrimSpace(strings.Split(firstToken, ";")[0])
+
+	if strings.HasPrefix(firstToken, "nl") {
+		return "nl"
+	}
+
+	return "en"
+}
+
+func getShareVerificationEmailContent(language, code string) (string, string) {
+	if normalizeShareEmailLanguage(language) == "nl" {
+		subject := "DailyTxT verificatiecode voor gedeelde toegang"
+		body := "Je verificatiecode is: " + code + "\r\n\r\nDeze code verloopt over " + strconv.Itoa(Settings.ShareCodeTTLMinutes) + " minuten."
+		return subject, body
+	}
+
+	subject := "DailyTxT share verification code"
+	body := "Your verification code is: " + code + "\r\n\r\nThis code expires in " + strconv.Itoa(Settings.ShareCodeTTLMinutes) + " minutes."
+	return subject, body
+}
+
+func SendShareVerificationEmailWithSettingsAndLanguage(settings ShareSMTPSettings, toEmail, code, language string) error {
 	if !IsShareSMTPSettingsConfigured(settings) {
 		return fmt.Errorf("SMTP is not configured")
 	}
@@ -210,8 +241,7 @@ func SendShareVerificationEmailWithSettings(settings ShareSMTPSettings, toEmail,
 		auth = smtp.PlainAuth("", settings.Username, settings.Password, settings.Host)
 	}
 
-	subject := "DailyTxT share verification code"
-	body := "Your verification code is: " + code + "\r\n\r\nThis code expires in " + strconv.Itoa(Settings.ShareCodeTTLMinutes) + " minutes."
+	subject, body := getShareVerificationEmailContent(language, code)
 	message := "From: " + from + "\r\n" +
 		"To: " + toEmail + "\r\n" +
 		"Subject: " + subject + "\r\n" +

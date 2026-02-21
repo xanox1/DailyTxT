@@ -113,8 +113,38 @@
 		return page.url.pathname.startsWith(resolve('/share/'));
 	}
 
+	function getBrowserLanguageForGuestView() {
+		const browserLanguage = (window.navigator.language || '').toLowerCase();
+		if (!browserLanguage) {
+			return 'en';
+		}
+
+		const availableLanguages = tolgee
+			.getInitialOptions()
+			.availableLanguages.map((language) => language.toLowerCase());
+
+		const exactMatch = availableLanguages.find((language) => language === browserLanguage);
+		if (exactMatch) {
+			return exactMatch;
+		}
+
+		if (browserLanguage.length > 2) {
+			const shortLanguage = browserLanguage.slice(0, 2);
+			const shortMatch = availableLanguages.find((language) => language === shortLanguage);
+			if (shortMatch) {
+				return shortMatch;
+			}
+		}
+
+		return 'en';
+	}
+
 	onMount(() => {
 		calculateResize();
+
+		if (isGuestViewRoute()) {
+			tolgee.changeLanguage(getBrowserLanguageForGuestView());
+		}
 
 		// if on login or shared read-only page, generate neon mesh
 		if (page.url.pathname.endsWith('/login') || page.url.pathname.startsWith(resolve('/share/'))) {
@@ -253,6 +283,12 @@
 			deferredInstallPrompt = null;
 			showInstallToast = false;
 		});
+	});
+
+	$effect(() => {
+		if (isGuestViewRoute()) {
+			tolgee.changeLanguage(getBrowserLanguageForGuestView());
+		}
 	});
 
 	$effect(() => {

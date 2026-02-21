@@ -99,7 +99,8 @@ func logShareAccess(userID int, email, ip, event, path string) {
 }
 
 type requestShareVerificationCodeRequest struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
+	Language string `json:"language"`
 }
 
 type verifyShareVerificationCodeRequest struct {
@@ -423,7 +424,12 @@ func RequestShareVerificationCode(w http.ResponseWriter, r *http.Request) {
 	expiresAt := time.Now().Add(time.Duration(utils.Settings.ShareCodeTTLMinutes) * time.Minute)
 	utils.StoreShareVerificationCode(tokenHash, email, code, expiresAt)
 
-	if err := utils.SendShareVerificationEmailForUser(userID, email, code); err != nil {
+	language := strings.TrimSpace(req.Language)
+	if language == "" {
+		language = r.Header.Get("Accept-Language")
+	}
+
+	if err := utils.SendShareVerificationEmailForUserWithLanguage(userID, email, code, language); err != nil {
 		http.Error(w, "Failed to send verification code", http.StatusInternalServerError)
 		return
 	}
