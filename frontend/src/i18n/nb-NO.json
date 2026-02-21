@@ -72,7 +72,8 @@
   "markdown": {
     "spoiler": {
       "confirm": "Dette innholdet er skjult som spoiler. Vil du vise det?",
-      "reveal_button": "Vis spoiler"
+      "reveal_button": "Vis spoiler",
+      "click_again_warning": "Klikk én gang til innen 3 sekunder for å vise denne spoileren."
     }
   },
   "login": {

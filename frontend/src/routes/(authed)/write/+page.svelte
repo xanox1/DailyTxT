@@ -2117,8 +2117,14 @@
 							{$t('modal.history.newer')}
 						</button>
 					</div>
-					<div class="text mt-2" use:spoilerRevealAction={$t('markdown.spoiler.confirm')}>
-						{@html parseMarkdown(history[historySelected]?.text || '', { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
+					<div
+						class="text mt-2"
+						use:spoilerRevealAction={{
+							warningText: $t('markdown.spoiler.click_again_warning'),
+							revealWindowMs: 3000
+						}}
+					>
+						{@html parseMarkdown(history[historySelected]?.text || '')}
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -2325,18 +2331,40 @@
 
 	.text :global(.spoiler-block) {
 		margin: 1rem 0;
+		position: relative;
+		cursor: pointer;
 	}
 
 	.text :global(.spoiler-content) {
 		filter: blur(0.35rem);
 		user-select: none;
-		pointer-events: none;
+	}
+
+	.text :global(.spoiler-warning) {
+		display: none;
+		position: absolute;
+		inset: 0;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		padding: 0.75rem;
+		font-weight: 600;
+		color: var(--bs-body-color);
+		background-color: rgba(0, 0, 0, 0.15);
+		border-radius: 0.375rem;
+	}
+
+	.text :global(.spoiler-block[data-armed='true'][data-revealed='false'] .spoiler-warning) {
+		display: flex;
 	}
 
 	.text :global(.spoiler-block[data-revealed='true'] .spoiler-content) {
 		filter: none;
 		user-select: auto;
-		pointer-events: auto;
+	}
+
+	.text :global(.spoiler-block[data-revealed='true'] .spoiler-warning) {
+		display: none;
 	}
 
 	:global(.TinyMDE h1) {

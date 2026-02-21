@@ -72,7 +72,8 @@
   "markdown": {
     "spoiler": {
       "confirm": "Deze inhoud is verborgen als spoiler. Wil je deze tonen?",
-      "reveal_button": "Spoiler tonen"
+      "reveal_button": "Spoiler tonen",
+      "click_again_warning": "Klik nog één keer binnen 3 seconden om deze spoiler te tonen."
     }
   },
   "login": {

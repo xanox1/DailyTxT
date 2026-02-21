@@ -72,7 +72,8 @@
   "markdown": {
     "spoiler": {
       "confirm": "Aquest contingut està amagat com a espòiler. El vols mostrar?",
-      "reveal_button": "Mostra l'espòiler"
+      "reveal_button": "Mostra l'espòiler",
+      "click_again_warning": "Torna a fer clic en menys de 3 segons per mostrar aquest espòiler."
     }
   },
   "login": {

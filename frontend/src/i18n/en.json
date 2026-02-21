@@ -72,7 +72,8 @@
   "markdown": {
     "spoiler": {
       "confirm": "This content is hidden as a spoiler. Reveal it?",
-      "reveal_button": "Reveal spoiler"
+      "reveal_button": "Reveal spoiler",
+      "click_again_warning": "Click once more within 3 seconds to reveal this spoiler."
     }
   },
   "login": {

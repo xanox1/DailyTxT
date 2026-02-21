@@ -72,7 +72,8 @@
   "markdown": {
     "spoiler": {
       "confirm": "Dieser Inhalt ist als Spoiler verborgen. Möchtest du ihn anzeigen?",
-      "reveal_button": "Spoiler anzeigen"
+      "reveal_button": "Spoiler anzeigen",
+      "click_again_warning": "Klicke innerhalb von 3 Sekunden erneut, um diesen Spoiler anzuzeigen."
     }
   },
   "login": {

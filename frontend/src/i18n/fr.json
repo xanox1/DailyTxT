@@ -72,7 +72,8 @@
   "markdown": {
     "spoiler": {
       "confirm": "Ce contenu est masqué comme spoiler. Voulez-vous l’afficher ?",
-      "reveal_button": "Afficher le spoiler"
+      "reveal_button": "Afficher le spoiler",
+      "click_again_warning": "Cliquez une nouvelle fois dans les 3 secondes pour afficher ce spoiler."
     }
   },
   "login": {

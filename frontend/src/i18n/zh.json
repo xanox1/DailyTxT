@@ -72,7 +72,8 @@
   "markdown": {
     "spoiler": {
       "confirm": "此内容已作为剧透隐藏。要显示吗？",
-      "reveal_button": "显示剧透"
+      "reveal_button": "显示剧透",
+      "click_again_warning": "请在 3 秒内再次点击以显示此剧透内容。"
     }
   },
   "login": {

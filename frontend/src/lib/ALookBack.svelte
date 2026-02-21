@@ -44,8 +44,14 @@
 			<div><b>{log?.year}</b></div>
 			<div><em><b>{log?.years_old}</b> {$t('aLookBack.Year_one_letter')}</em></div>
 		</div>
-		<div class="html-preview p-1" use:spoilerRevealAction={$t('markdown.spoiler.confirm')}>
-			{@html parseMarkdown(log?.text, { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
+		<div
+			class="html-preview p-1"
+			use:spoilerRevealAction={{
+				warningText: $t('markdown.spoiler.click_again_warning'),
+				revealWindowMs: 3000
+			}}
+		>
+			{@html parseMarkdown(log?.text)}
 		</div>
 	</div>
 </button>
@@ -75,8 +81,14 @@
 				</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<div class="modal-body" use:spoilerRevealAction={$t('markdown.spoiler.confirm')}>
-				{@html parseMarkdown(log?.text, { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
+			<div
+				class="modal-body"
+				use:spoilerRevealAction={{
+					warningText: $t('markdown.spoiler.click_again_warning'),
+					revealWindowMs: 3000
+				}}
+			>
+				{@html parseMarkdown(log?.text)}
 			</div>
 			<div class="modal-footer">
 				<button onclick={goToDate} class="btn btn-primary">
@@ -114,13 +126,38 @@
 	:global(.spoiler-content) {
 		filter: blur(0.35rem);
 		user-select: none;
-		pointer-events: none;
+	}
+
+	:global(.spoiler-block) {
+		position: relative;
+		cursor: pointer;
+	}
+
+	:global(.spoiler-warning) {
+		display: none;
+		position: absolute;
+		inset: 0;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		padding: 0.75rem;
+		font-weight: 600;
+		color: var(--bs-body-color);
+		background-color: rgba(0, 0, 0, 0.15);
+		border-radius: 0.375rem;
+	}
+
+	:global(.spoiler-block[data-armed='true'][data-revealed='false'] .spoiler-warning) {
+		display: flex;
 	}
 
 	:global(.spoiler-block[data-revealed='true'] .spoiler-content) {
 		filter: none;
 		user-select: auto;
-		pointer-events: auto;
+	}
+
+	:global(.spoiler-block[data-revealed='true'] .spoiler-warning) {
+		display: none;
 	}
 
 	:global(body[data-bs-theme='dark']) #zoomButton {

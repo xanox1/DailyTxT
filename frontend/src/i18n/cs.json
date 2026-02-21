@@ -72,7 +72,8 @@
   "markdown": {
     "spoiler": {
       "confirm": "Tento obsah je skrytý jako spoiler. Chcete jej zobrazit?",
-      "reveal_button": "Zobrazit spoiler"
+      "reveal_button": "Zobrazit spoiler",
+      "click_again_warning": "Klikněte znovu do 3 sekund pro zobrazení tohoto spoileru."
     }
   },
   "login": {
