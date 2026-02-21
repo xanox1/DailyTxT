@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/mail"
 	"net/smtp"
 	"strconv"
@@ -131,17 +132,13 @@ func generateShareCodeStoreKey(tokenHash, email string) string {
 }
 
 func GenerateSixDigitCode() (string, error) {
-	max := int64(1000000)
-	buf := make([]byte, 8)
-	if _, err := rand.Read(buf); err != nil {
+	max := big.NewInt(1000000)
+	value, err := rand.Int(rand.Reader, max)
+	if err != nil {
 		return "", err
 	}
-	var value int64
-	for _, b := range buf {
-		value = (value << 8) | int64(b)
-	}
-	value = value % max
-	return fmt.Sprintf("%06d", value), nil
+
+	return fmt.Sprintf("%06d", value.Int64()), nil
 }
 
 func StoreShareVerificationCode(tokenHash, email, code string, expiresAt time.Time) {
