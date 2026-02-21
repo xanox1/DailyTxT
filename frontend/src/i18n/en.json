@@ -167,6 +167,33 @@
       "error": "Error during search!"
     }
   },
+  "shareView": {
+    "badge_read_only": "Read Only",
+    "invalid": {
+      "description": "This share link is not valid or has been revoked.",
+      "title": "Invalid or expired share link"
+    },
+    "loading": "Loading...",
+    "page_title": "DailyTxT – Shared Diary",
+    "verification": {
+      "code_label": "Verification code",
+      "description": "Enter your whitelisted email address to receive a 6-digit code.",
+      "email_label": "Email address",
+      "error_code_invalid": "Invalid or expired verification code.",
+      "error_code_required": "Please enter email address and verification code.",
+      "error_email_invalid": "Please enter a valid email address.",
+      "error_email_not_allowed": "This email address is not allowed for this share link.",
+      "error_email_required": "Please enter your email address.",
+      "error_send_code": "Failed to send verification code. Please try again.",
+      "error_status": "Failed to check verification status. Please try again.",
+      "error_verify_failed": "Verification failed. Please try again.",
+      "send_code": "Send code",
+      "success_code_sent": "Verification code sent. Please check your inbox.",
+      "success_verified": "Verification successful.",
+      "title": "Email verification required",
+      "verify_code": "Verify code"
+    }
+  },
   "settings": {
     "abort": "Cancel",
     "about": "About",

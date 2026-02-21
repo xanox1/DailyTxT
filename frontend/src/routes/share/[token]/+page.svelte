@@ -100,7 +100,7 @@
 			if (error.response?.status === 401) {
 				isInvalidToken = true;
 			} else {
-				verificationError = 'Failed to check verification status. Please try again.';
+				verificationError = $t('shareView.verification.error_status');
 			}
 			console.error(error);
 			return null;
@@ -137,7 +137,7 @@
 		verificationError = '';
 		verificationSuccess = '';
 		if (!verificationEmail) {
-			verificationError = 'Please enter your email address.';
+			verificationError = $t('shareView.verification.error_email_required');
 			return;
 		}
 
@@ -149,14 +149,14 @@
 				{ params: { token } }
 			);
 			codeSent = true;
-			verificationSuccess = 'Verification code sent. Please check your inbox.';
+			verificationSuccess = $t('shareView.verification.success_code_sent');
 		} catch (error) {
 			if (error.response?.status === 403) {
-				verificationError = 'This email address is not allowed for this share link.';
+				verificationError = $t('shareView.verification.error_email_not_allowed');
 			} else if (error.response?.status === 400) {
-				verificationError = 'Please enter a valid email address.';
+				verificationError = $t('shareView.verification.error_email_invalid');
 			} else {
-				verificationError = 'Failed to send verification code. Please try again.';
+				verificationError = $t('shareView.verification.error_send_code');
 			}
 			console.error(error);
 		} finally {
@@ -168,7 +168,7 @@
 		verificationError = '';
 		verificationSuccess = '';
 		if (!verificationEmail || !verificationCode) {
-			verificationError = 'Please enter email address and verification code.';
+			verificationError = $t('shareView.verification.error_code_required');
 			return;
 		}
 
@@ -181,13 +181,13 @@
 			);
 			isShareVerified = true;
 			verificationCode = '';
-			verificationSuccess = 'Verification successful.';
+			verificationSuccess = $t('shareView.verification.success_verified');
 			await loadMonthForSharedReading(currentYear, currentMonth);
 		} catch (error) {
 			if (error.response?.status === 403) {
-				verificationError = 'Invalid or expired verification code.';
+				verificationError = $t('shareView.verification.error_code_invalid');
 			} else {
-				verificationError = 'Verification failed. Please try again.';
+				verificationError = $t('shareView.verification.error_verify_failed');
 			}
 			console.error(error);
 		} finally {
@@ -217,14 +217,14 @@
 </script>
 
 <svelte:head>
-	<title>DailyTxT – Shared Diary</title>
+	<title>{$t('shareView.page_title')}</title>
 </svelte:head>
 
 {#if isInvalidToken}
 	<div class="d-flex align-items-center justify-content-center h-100">
 		<div class="glass p-5 rounded-5 text-center">
-			<h3>🔒 Invalid or expired share link</h3>
-			<p class="text-muted mt-2">This share link is not valid or has been revoked.</p>
+			<h3>🔒 {$t('shareView.invalid.title')}</h3>
+			<p class="text-muted mt-2">{$t('shareView.invalid.description')}</p>
 		</div>
 	</div>
 {:else}
@@ -232,7 +232,7 @@
 		<div class="d-flex justify-content-between align-items-center mt-3 mb-2 px-2">
 			<div class="d-flex align-items-center gap-2">
 				<span class="fw-semibold">📖 DailyTxT</span>
-				<span class="badge bg-secondary">Read Only</span>
+				<span class="badge bg-secondary">{$t('shareView.badge_read_only')}</span>
 			</div>
 			<div class="d-flex align-items-center gap-2">
 				<button class="btn btn-sm btn-outline-secondary" onclick={prevMonth}>‹</button>
@@ -244,11 +244,11 @@
 		{#if isVerificationRequired && !isShareVerified}
 			<div class="d-flex align-items-center justify-content-center h-100 p-3">
 				<div class="glass p-4 rounded-5 verification-box w-100">
-					<h4 class="mb-2">Email verification required</h4>
-					<p class="text-muted mb-3">Enter your whitelisted email address to receive a 6-digit code.</p>
+					<h4 class="mb-2">{$t('shareView.verification.title')}</h4>
+					<p class="text-muted mb-3">{$t('shareView.verification.description')}</p>
 
 					<div class="mb-3">
-						<label class="form-label" for="verificationEmail">Email address</label>
+						<label class="form-label" for="verificationEmail">{$t('shareView.verification.email_label')}</label>
 						<input
 							id="verificationEmail"
 							type="email"
@@ -262,12 +262,12 @@
 						{#if isRequestingCode}
 							<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
 						{/if}
-						Send code
+						{$t('shareView.verification.send_code')}
 					</button>
 
 					{#if codeSent}
 						<div class="mb-3">
-							<label class="form-label" for="verificationCode">Verification code</label>
+							<label class="form-label" for="verificationCode">{$t('shareView.verification.code_label')}</label>
 							<input
 								id="verificationCode"
 								type="text"
@@ -281,7 +281,7 @@
 							{#if isVerifyingCode}
 								<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
 							{/if}
-							Verify code
+							{$t('shareView.verification.verify_code')}
 						</button>
 					{/if}
 
@@ -299,7 +299,7 @@
 					<div class="d-flex align-items-center justify-content-center h-100">
 						<div class="glass p-5 rounded-5 no-entries">
 							<div class="spinner-border spinner-border-lg" role="status">
-								<span class="visually-hidden">Loading...</span>
+									<span class="visually-hidden">{$t('shareView.loading')}</span>
 							</div>
 						</div>
 					</div>

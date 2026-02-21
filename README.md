@@ -41,6 +41,7 @@ Try the [live demo](https://dailytxt.phitux.de) 🚀
 - **Search**: You can search for any word, tag or filename in your entries.
 - **Custom Templates**: You can create and use custom templates for your entries.
 - **Read Mode**: A distraction-free mode for reading your entries of each month.
+- **Share / Guest View**: Create read-only share links for your diary and optionally protect access with email verification (whitelist + code).
 - **Multi-Language**: DailyTxT is currently available in <ins>**🇺🇸 English, 🇩🇪 German, 🇫🇷 French, 🇨🇿 Czech, 🇳🇴 Norwegian, 🇨🇳 Simplified Chinese, 🇹🇼 Traditional-Chinese (Taiwan), 🇮🇹 Italian, 🇳🇱 Dutch, 🇦🇩 Catalan**</ins>. New languages can be added easily, see [TRANSLATION.md](TRANSLATION.md) for instructions.
 - **Export to HTML**: You can export your entries (including uploaded files) to HTML format.
 - **Mobile**: Responsive design for easy use on mobile screen. Additionally: allows installation as a PWA (Progressive Web App) to your Homescreen.
@@ -185,6 +186,10 @@ The old version 1 is moved to the [v1 branch](https://github.com/PhiTux/DailyTxT
 ```
 - Updated dependencies for security reasons
 - Integrated emojis into the frontend instead of loading them from a CDN.
+- Improved heading sizes (H1/H2) in editor preview/history, read mode, and shared read-only mode.
+- Shared read-only view now uses the same gradient-style background as the normal read view.
+- Hidden PWA install/update recommendation toasts in guest/share view.
+- Added and wired complete translation keys for the share view (including Dutch coverage for all share-view UI texts).
 ```
 ---
 

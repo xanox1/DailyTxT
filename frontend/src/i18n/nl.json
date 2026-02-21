@@ -167,6 +167,33 @@
       "error": "Fout tijdens zoeken!"
     }
   },
+  "shareView": {
+    "badge_read_only": "Alleen lezen",
+    "invalid": {
+      "description": "Deze deellink is ongeldig of is ingetrokken.",
+      "title": "Ongeldige of verlopen deellink"
+    },
+    "loading": "Laden...",
+    "page_title": "DailyTxT – Gedeeld dagboek",
+    "verification": {
+      "code_label": "Verificatiecode",
+      "description": "Voer uw toegestane e-mailadres in om een 6-cijferige code te ontvangen.",
+      "email_label": "E-mailadres",
+      "error_code_invalid": "Ongeldige of verlopen verificatiecode.",
+      "error_code_required": "Voer een e-mailadres en verificatiecode in.",
+      "error_email_invalid": "Voer een geldig e-mailadres in.",
+      "error_email_not_allowed": "Dit e-mailadres is niet toegestaan voor deze deellink.",
+      "error_email_required": "Voer uw e-mailadres in.",
+      "error_send_code": "Verificatiecode verzenden mislukt. Probeer het opnieuw.",
+      "error_status": "Controleren van de verificatiestatus mislukt. Probeer het opnieuw.",
+      "error_verify_failed": "Verificatie mislukt. Probeer het opnieuw.",
+      "send_code": "Code verzenden",
+      "success_code_sent": "Verificatiecode verzonden. Controleer uw inbox.",
+      "success_verified": "Verificatie geslaagd.",
+      "title": "E-mailverificatie vereist",
+      "verify_code": "Code verifiëren"
+    }
+  },
   "settings": {
     "abort": "Annuleren",
     "about": "Over",
