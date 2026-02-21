@@ -69,6 +69,12 @@
     },
     "written_on": "Geplaatst op:"
   },
+  "markdown": {
+    "spoiler": {
+      "confirm": "Deze inhoud is verborgen als spoiler. Wil je deze tonen?",
+      "reveal_button": "Spoiler tonen"
+    }
+  },
   "login": {
     "alert": {
       "empty_fields": "Velden mogen niet leeg zijn!",

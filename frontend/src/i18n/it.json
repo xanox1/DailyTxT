@@ -69,6 +69,12 @@
     },
     "written_on": "Scritto il:"
   },
+  "markdown": {
+    "spoiler": {
+      "confirm": "Questo contenuto è nascosto come spoiler. Vuoi mostrarlo?",
+      "reveal_button": "Mostra spoiler"
+    }
+  },
   "login": {
     "alert": {
       "empty_fields": "I campi non devono essere vuoti!",

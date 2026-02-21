@@ -69,6 +69,12 @@
     },
     "written_on": "Posted on:"
   },
+  "markdown": {
+    "spoiler": {
+      "confirm": "This content is hidden as a spoiler. Reveal it?",
+      "reveal_button": "Reveal spoiler"
+    }
+  },
   "login": {
     "alert": {
       "empty_fields": "Fields must not be empty!",

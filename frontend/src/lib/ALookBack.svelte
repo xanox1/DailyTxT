@@ -1,16 +1,11 @@
 <script>
-	import { marked } from 'marked';
+	import { parseMarkdown, revealSpoilerFromClick } from './markdown.js';
 	import { selectedDate } from './calendarStore';
 	import { getTranslate, getTolgee } from '@tolgee/svelte';
 	import { onMount } from 'svelte';
 
 	const { t } = getTranslate();
 	const tolgee = getTolgee(['language']);
-
-	marked.use({
-		breaks: true,
-		gfm: true
-	});
 
 	let { log } = $props();
 
@@ -39,6 +34,10 @@
 			modalInstance.hide();
 		}
 	}
+
+	function onMarkdownClick(event) {
+		revealSpoilerFromClick(event, $t('markdown.spoiler.confirm'));
+	}
 </script>
 
 <!-- svelte-ignore a11y_consider_explicit_label -->
@@ -48,8 +47,8 @@
 			<div><b>{log?.year}</b></div>
 			<div><em><b>{log?.years_old}</b> {$t('aLookBack.Year_one_letter')}</em></div>
 		</div>
-		<div class="html-preview p-1">
-			{@html marked.parse(log?.text)}
+		<div class="html-preview p-1" onclick={onMarkdownClick}>
+			{@html parseMarkdown(log?.text, { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
 		</div>
 	</div>
 </button>
@@ -79,8 +78,8 @@
 				</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<div class="modal-body">
-				{@html marked.parse(log?.text)}
+			<div class="modal-body" onclick={onMarkdownClick}>
+				{@html parseMarkdown(log?.text, { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
 			</div>
 			<div class="modal-footer">
 				<button onclick={goToDate} class="btn btn-primary">
@@ -113,6 +112,18 @@
 		line-height: 1.25;
 		backdrop-filter: blur(8px) saturate(150%);
 		mask-image: linear-gradient(0deg, transparent -5px, red 50px);
+	}
+
+	:global(.spoiler-content) {
+		filter: blur(0.35rem);
+		user-select: none;
+		pointer-events: none;
+	}
+
+	:global(.spoiler-block[data-revealed='true'] .spoiler-content) {
+		filter: none;
+		user-select: auto;
+		pointer-events: auto;
 	}
 
 	:global(body[data-bs-theme='dark']) #zoomButton {

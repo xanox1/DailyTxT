@@ -69,6 +69,12 @@
     },
     "written_on": "Geschrieben am:"
   },
+  "markdown": {
+    "spoiler": {
+      "confirm": "Dieser Inhalt ist als Spoiler verborgen. Möchtest du ihn anzeigen?",
+      "reveal_button": "Spoiler anzeigen"
+    }
+  },
   "login": {
     "alert": {
       "empty_fields": "Eingabefelder dürfen nicht leer sein!",

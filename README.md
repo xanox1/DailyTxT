@@ -61,6 +61,12 @@ Try the [live demo](https://dailytxt.phitux.de) 🚀
 - You can change the order of files (and images!) by dragging them (at the left side) in the file list.
 - A yellow dot in the calendar means, that there are uploaded files for this day.
 - The orange button in the calendar can highlight the current day.
+- You can hide spoilers in markdown using:
+  ```md
+  :::spoiler
+  hidden content
+  :::
+  ```
 
 ## Installation
 

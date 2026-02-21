@@ -69,6 +69,12 @@
     },
     "written_on": "Uloženo:"
   },
+  "markdown": {
+    "spoiler": {
+      "confirm": "Tento obsah je skrytý jako spoiler. Chcete jej zobrazit?",
+      "reveal_button": "Zobrazit spoiler"
+    }
+  },
   "login": {
     "alert": {
       "empty_fields": "Pole nemohou být prázdná!",

@@ -5,7 +5,7 @@
 	import DatepickerLogic from '$lib/DatepickerLogic.svelte';
 	import Sidenav from '$lib/Sidenav.svelte';
 	import { onMount } from 'svelte';
-	import { marked } from 'marked';
+	import { parseMarkdown, revealSpoilerFromClick } from '$lib/markdown.js';
 	import Tag from '$lib/Tag.svelte';
 	import { tags, tagsLoaded } from '$lib/tagStore.js';
 	import FileList from '$lib/FileList.svelte';
@@ -24,10 +24,9 @@
 		return config;
 	});
 
-	marked.use({
-		breaks: true,
-		gfm: true
-	});
+	function onMarkdownClick(event) {
+		revealSpoilerFromClick(event, $t('markdown.spoiler.confirm'));
+	}
 
 	let logs = $state([]);
 
@@ -489,8 +488,8 @@
 						<div class="logContent flex-grow-1 d-flex flex-row">
 							<div class="flex-grow-1 middle">
 								{#if log.text && log.text !== ''}
-									<div class="text">
-										{@html marked.parse(log.text)}
+									<div class="text" onclick={onMarkdownClick}>
+										{@html parseMarkdown(log.text, { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
 									</div>
 								{/if}
 								{#if log.tags?.length > 0}
@@ -614,10 +613,25 @@
 		font-style: italic;
 		border-top: 1px solid currentColor;
 		border-bottom: 1px solid currentColor;
-		margin: 1rem 0 1rem 0.5rem;
-		padding-left: 0.75rem;
-		padding-top: 0.5rem;
-		padding-bottom: 0.5rem;
+		background-color: var(--bs-tertiary-bg);
+		margin: 1rem 0;
+		padding: 0.5rem 0.75rem;
+	}
+
+	.text :global(.spoiler-block) {
+		margin: 1rem 0;
+	}
+
+	.text :global(.spoiler-content) {
+		filter: blur(0.35rem);
+		user-select: none;
+		pointer-events: none;
+	}
+
+	.text :global(.spoiler-block[data-revealed='true'] .spoiler-content) {
+		filter: none;
+		user-select: auto;
+		pointer-events: auto;
 	}
 
 	.tags {

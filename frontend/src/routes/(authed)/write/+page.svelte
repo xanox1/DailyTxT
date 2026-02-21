@@ -34,7 +34,7 @@
 	import TemplateDropdown from '$lib/TemplateDropdown.svelte';
 	import { insertTemplate } from '$lib/templateStore';
 	import ALookBack from '$lib/ALookBack.svelte';
-	import { marked } from 'marked';
+	import { parseMarkdown, revealSpoilerFromClick } from '$lib/markdown.js';
 	import { getTranslate, getTolgee } from '@tolgee/svelte';
 	import DemoModeText from '$lib/DemoModeText.svelte';
 
@@ -176,6 +176,10 @@
 			}
 		}
 	});
+
+	function onMarkdownClick(event) {
+		revealSpoilerFromClick(event, $t('markdown.spoiler.confirm'));
+	}
 
 	function on_key_up(event) {
 		if (!isMac && event.key === 'Alt') {
@@ -2049,8 +2053,8 @@
 							{$t('modal.history.newer')}
 						</button>
 					</div>
-					<div class="text mt-2">
-						{@html marked.parse(history[historySelected]?.text || '')}
+					<div class="text mt-2" onclick={onMarkdownClick}>
+						{@html parseMarkdown(history[historySelected]?.text || '', { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -2250,10 +2254,25 @@
 		font-style: italic;
 		border-top: 1px solid currentColor;
 		border-bottom: 1px solid currentColor;
-		margin: 1rem 0 1rem 0.5rem;
-		padding-left: 0.75rem;
-		padding-top: 0.5rem;
-		padding-bottom: 0.5rem;
+		background-color: var(--bs-tertiary-bg);
+		margin: 1rem 0;
+		padding: 0.5rem 0.75rem;
+	}
+
+	.text :global(.spoiler-block) {
+		margin: 1rem 0;
+	}
+
+	.text :global(.spoiler-content) {
+		filter: blur(0.35rem);
+		user-select: none;
+		pointer-events: none;
+	}
+
+	.text :global(.spoiler-block[data-revealed='true'] .spoiler-content) {
+		filter: none;
+		user-select: auto;
+		pointer-events: auto;
 	}
 
 	:global(.TinyMDE h1) {

@@ -69,6 +69,12 @@
     },
     "written_on": "Publicat el:"
   },
+  "markdown": {
+    "spoiler": {
+      "confirm": "Aquest contingut està amagat com a espòiler. El vols mostrar?",
+      "reveal_button": "Mostra l'espòiler"
+    }
+  },
   "login": {
     "alert": {
       "empty_fields": "Els camps no poden estar buits!",

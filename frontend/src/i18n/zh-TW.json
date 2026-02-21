@@ -69,6 +69,12 @@
     },
     "written_on": "發佈於："
   },
+  "markdown": {
+    "spoiler": {
+      "confirm": "此內容已作為劇透隱藏。要顯示嗎？",
+      "reveal_button": "顯示劇透"
+    }
+  },
   "login": {
     "alert": {
       "empty_fields": "欄位不得為空！",

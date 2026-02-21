@@ -69,6 +69,12 @@
     },
     "written_on": "Postet:"
   },
+  "markdown": {
+    "spoiler": {
+      "confirm": "Dette innholdet er skjult som spoiler. Vil du vise det?",
+      "reveal_button": "Vis spoiler"
+    }
+  },
   "login": {
     "alert": {
       "empty_fields": "Feltene kan ikke være tomme!",

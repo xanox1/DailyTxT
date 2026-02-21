@@ -69,6 +69,12 @@
     },
     "written_on": "发布于："
   },
+  "markdown": {
+    "spoiler": {
+      "confirm": "此内容已作为剧透隐藏。要显示吗？",
+      "reveal_button": "显示剧透"
+    }
+  },
   "login": {
     "alert": {
       "empty_fields": "字段不能为空！",

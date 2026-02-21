@@ -1,7 +1,7 @@
 <script>
 	import { API_URL } from '$lib/APIurl.js';
 	import axios from 'axios';
-	import { marked } from 'marked';
+	import { parseMarkdown, revealSpoilerFromClick } from '$lib/markdown.js';
 	import { page } from '$app/state';
 	import { untrack } from 'svelte';
 	import { getTranslate, getTolgee } from '@tolgee/svelte';
@@ -9,10 +9,9 @@
 	const { t } = getTranslate();
 	const tolgee = getTolgee(['language']);
 
-	marked.use({
-		breaks: true,
-		gfm: true
-	});
+	function onMarkdownClick(event) {
+		revealSpoilerFromClick(event, $t('markdown.spoiler.confirm'));
+	}
 
 	let token = $derived(page.params.token);
 
@@ -326,8 +325,8 @@
 								</div>
 								<div class="logContent flex-grow-1">
 									{#if log.text && log.text !== ''}
-										<div class="text">
-											{@html marked.parse(log.text)}
+										<div class="text" onclick={onMarkdownClick}>
+											{@html parseMarkdown(log.text, { spoilerButtonLabel: $t('markdown.spoiler.reveal_button') })}
 										</div>
 									{/if}
 									{#if log.files && log.files.length > 0}
@@ -441,10 +440,25 @@
 		font-style: italic;
 		border-top: 1px solid currentColor;
 		border-bottom: 1px solid currentColor;
-		margin: 1rem 0 1rem 0.5rem;
-		padding-left: 0.75rem;
-		padding-top: 0.5rem;
-		padding-bottom: 0.5rem;
+		background-color: var(--bs-tertiary-bg);
+		margin: 1rem 0;
+		padding: 0.5rem 0.75rem;
+	}
+
+	.text :global(.spoiler-block) {
+		margin: 1rem 0;
+	}
+
+	.text :global(.spoiler-content) {
+		filter: blur(0.35rem);
+		user-select: none;
+		pointer-events: none;
+	}
+
+	.text :global(.spoiler-block[data-revealed='true'] .spoiler-content) {
+		filter: none;
+		user-select: auto;
+		pointer-events: auto;
 	}
 
 	.logContent {
