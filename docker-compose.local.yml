@@ -1,0 +1,5 @@
+services:
+  dailytxt:
+    build:
+      context: .
+    image: dailytxt:local-test
