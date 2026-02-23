@@ -222,6 +222,7 @@ The old version 1 is moved to the [v1 branch](https://github.com/PhiTux/DailyTxT
 - Improved shared read-only navigation with the cleaner calendar + side search menu.
 - Added shared search across all months/years via a dedicated share endpoint.
 - SMTP warning in sharing settings now validates saved UI SMTP settings instead of ENV defaults.
+- Fixed a shared read-only reload loop caused by calendar state updates.
 ```
 ---
 

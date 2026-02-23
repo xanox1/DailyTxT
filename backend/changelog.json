@@ -5,7 +5,8 @@
       "✨ Improved shared read-view navigation with the cleaner calendar + side search menu",
       "✨ Added shared search across all months/years via share token endpoint",
       "🐞 Fixed inline image/file links in shared markdown to use secure share download URLs",
-      "🐞 SMTP warning in sharing settings now validates saved UI SMTP settings instead of ENV defaults"
+      "🐞 SMTP warning in sharing settings now validates saved UI SMTP settings instead of ENV defaults",
+      "🐞 Fixed shared read-only view reload loop caused by calendar state updates"
     ]
   },
   "2.4.2": {

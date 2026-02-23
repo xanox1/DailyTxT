@@ -19,6 +19,7 @@
 	let logs = $state([]);
 	let searchQuery = $state('');
 	let sharedSearchResults = $state([]);
+	let hasSearchedShared = $state(false);
 	let offcanvasEl = $state(null);
 	let isSearchingShared = $state(false);
 	let isLoadingMonthForReading = $state(false);
@@ -32,6 +33,8 @@
 	let verificationError = $state('');
 	let verificationSuccess = $state('');
 	let codeSent = $state(false);
+	let loadedMonth = $state(-1);
+	let loadedYear = $state(-1);
 
 	function scrollToDay(day, behavior = 'auto') {
 		const el = document.querySelector(`.log[data-log-day="${day}"]`);
@@ -53,21 +56,34 @@
 
 	// Re-load whenever month/year changes
 	$effect(() => {
-		// track both reactive values
 		const _year = $cal.currentYear;
 		const _month = $cal.currentMonth;
 		const _token = token;
-		if (_token) {
-			untrack(() => {
-				loadMonthForSharedReading(_year, _month);
-			});
+
+		if (!_token) {
+			return;
 		}
+
+		if (_year === loadedYear && _month === loadedMonth) {
+			return;
+		}
+
+		loadedYear = _year;
+		loadedMonth = _month;
+
+		untrack(() => {
+			loadMonthForSharedReading(_year, _month);
+		});
 	});
 
 	$effect(() => {
 		if ($selectedDate) {
-			$cal.currentYear = $selectedDate.year;
-			$cal.currentMonth = $selectedDate.month - 1;
+			if ($cal.currentYear !== $selectedDate.year) {
+				$cal.currentYear = $selectedDate.year;
+			}
+			if ($cal.currentMonth !== $selectedDate.month - 1) {
+				$cal.currentMonth = $selectedDate.month - 1;
+			}
 
 			const el = document.querySelector(`.log[data-log-day="${$selectedDate.day}"]`);
 			if (el) {
@@ -299,10 +315,12 @@
 	async function performSharedSearch() {
 		const query = searchQuery.trim();
 		if (!query) {
+			hasSearchedShared = false;
 			sharedSearchResults = [];
 			return;
 		}
 
+		hasSearchedShared = true;
 		isSearchingShared = true;
 		try {
 			const response = await axios.get(API_URL + '/share/searchString', {
@@ -425,7 +443,7 @@
 								</div>
 							</button>
 						{/each}
-					{:else}
+					{:else if hasSearchedShared && !isSearchingShared}
 						<span class="noResult">{$t('search.no_results')}</span>
 					{/if}
 				</div>
@@ -487,7 +505,7 @@
 										</div>
 									</button>
 								{/each}
-							{:else}
+							{:else if hasSearchedShared && !isSearchingShared}
 								<span class="noResult">{$t('search.no_results')}</span>
 							{/if}
 						</div>
