@@ -176,6 +176,13 @@
       "error": "Feil under søk!"
     }
   },
+  "shareView": {
+    "jumpToDate": {
+      "button": "Go",
+      "label": "Choose date",
+      "title": "Jump to date"
+    }
+  },
   "settings": {
     "abort": "Avbryt",
     "about": "Om",

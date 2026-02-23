@@ -176,6 +176,13 @@
       "error": "搜尋時發生錯誤！"
     }
   },
+  "shareView": {
+    "jumpToDate": {
+      "button": "Go",
+      "label": "Choose date",
+      "title": "Jump to date"
+    }
+  },
   "settings": {
     "abort": "取消",
     "about": "關於",

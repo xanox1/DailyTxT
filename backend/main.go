@@ -21,11 +21,11 @@ var AppVersion string
 // longTimeoutEndpoints defines endpoints that need extended/none timeouts
 // Paths are checked against the request URL path as seen by the top-level handler.
 var longTimeoutEndpoints = map[string]bool{
-	"/api/logs/uploadFile":        true,
-	"/api/logs/downloadFile":      true,
-	"/api/share/downloadFile":     true,
-	"/api/logs/exportData":        true,
-	"/api/users/login":            true,
+	"/api/logs/uploadFile":    true,
+	"/api/logs/downloadFile":  true,
+	"/api/share/downloadFile": true,
+	"/api/logs/exportData":    true,
+	"/api/users/login":        true,
 }
 
 // timeoutMiddleware applies different timeouts based on the endpoint
@@ -143,6 +143,9 @@ func main() {
 	// Admin routes
 	api.HandleFunc("POST /admin/validate-password", middleware.RequireAuth(handlers.ValidateAdminPassword))
 	api.HandleFunc("POST /admin/get-data", middleware.RequireAuth(handlers.GetAdminData))
+	api.HandleFunc("POST /admin/get-share-session-settings", middleware.RequireAuth(handlers.GetShareSessionSettings))
+	api.HandleFunc("POST /admin/save-share-session-settings", middleware.RequireAuth(handlers.SaveShareSessionSettings))
+	api.HandleFunc("POST /admin/invalidate-share-session-cookies", middleware.RequireAuth(handlers.InvalidateShareSessionCookies))
 	api.HandleFunc("POST /admin/delete-user", middleware.RequireAuth(handlers.DeleteUser))
 	api.HandleFunc("POST /admin/delete-old-data", middleware.RequireAuth(handlers.DeleteOldData))
 	api.HandleFunc("POST /admin/open-registration", middleware.RequireAuth(handlers.OpenRegistrationTemp))

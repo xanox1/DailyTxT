@@ -176,6 +176,13 @@
       "error": "Erreur lors de la recherche !"
     }
   },
+  "shareView": {
+    "jumpToDate": {
+      "button": "Go",
+      "label": "Choose date",
+      "title": "Jump to date"
+    }
+  },
   "settings": {
     "abort": "Annuler",
     "about": "À propos",

@@ -479,7 +479,7 @@ func VerifyShareVerificationCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expiresAt := time.Now().Add(time.Duration(utils.Settings.ShareCookieDays) * 24 * time.Hour)
+	expiresAt := time.Now().Add(time.Duration(utils.GetShareSessionCookieDaysOrDefault()) * 24 * time.Hour)
 	cookieValue, err := utils.BuildShareVerificationCookieValue(tokenHash, email, expiresAt)
 	if err != nil {
 		http.Error(w, "Failed to create verification session", http.StatusInternalServerError)

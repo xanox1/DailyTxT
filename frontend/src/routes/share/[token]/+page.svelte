@@ -374,13 +374,13 @@
 						data-bs-toggle="dropdown"
 						aria-expanded="false"
 					>
-						📅 <span>Ga naar datum</span>
+						📅 <span>{$t('shareView.jumpToDate.title')}</span>
 					</button>
 					<div class="dropdown-menu dropdown-menu-end p-3 jump-calendar-menu">
-						<label class="form-label mb-2" for="jumpDateInput">Kies datum</label>
+						<label class="form-label mb-2" for="jumpDateInput">{$t('shareView.jumpToDate.label')}</label>
 						<input id="jumpDateInput" class="form-control form-control-sm mb-2" type="date" bind:value={jumpDate} />
 						<button class="btn btn-sm btn-primary w-100" onclick={jumpToDate}>
-							Ga
+							{$t('shareView.jumpToDate.button')}
 						</button>
 					</div>
 				</div>

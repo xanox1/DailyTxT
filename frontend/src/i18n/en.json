@@ -182,6 +182,11 @@
       "description": "This share link is not valid or has been revoked.",
       "title": "Invalid or expired share link"
     },
+    "jumpToDate": {
+      "button": "Go",
+      "label": "Choose date",
+      "title": "Jump to date"
+    },
     "loading": "Loading...",
     "page_title": "DailyTxT – Shared Diary",
     "verification": {

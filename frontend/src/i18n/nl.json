@@ -182,6 +182,11 @@
       "description": "Deze deellink is ongeldig of is ingetrokken.",
       "title": "Ongeldige of verlopen deellink"
     },
+    "jumpToDate": {
+      "button": "Ga",
+      "label": "Kies datum",
+      "title": "Ga naar datum"
+    },
     "loading": "Laden...",
     "page_title": "DailyTxT – Gedeeld dagboek",
     "verification": {

@@ -31,6 +31,13 @@
     "title": "DailyTxT Export",
     "user": "Uživatel"
   },
+  "shareView": {
+    "jumpToDate": {
+      "button": "Go",
+      "label": "Choose date",
+      "title": "Jump to date"
+    }
+  },
   "fileList": {
     "change_filename": "Přejmenovat soubor",
     "delete_file": "Smazat soubor",

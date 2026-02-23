@@ -24,6 +24,15 @@ type AdminUserResponse struct {
 	DiskUsage int64  `json:"disk_usage"`
 }
 
+type ShareSessionAdminRequest struct {
+	AdminPassword string `json:"admin_password"`
+}
+
+type SaveShareSessionSettingsRequest struct {
+	AdminPassword string `json:"admin_password"`
+	CookieDays    int    `json:"cookie_days"`
+}
+
 // ValidateAdminPassword validates the admin password
 func ValidateAdminPassword(w http.ResponseWriter, r *http.Request) {
 	adminPassword := os.Getenv("ADMIN_PASSWORD")
@@ -125,13 +134,88 @@ func GetAdminData(w http.ResponseWriter, r *http.Request) {
 
 	// Get App Settings (Env-vars)
 	appSettings := utils.GetAppSettings()
+	shareSessionSettings, err := utils.GetShareSessionSettings()
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{
-		"users":        adminUsers,
-		"free_space":   freeSpace,
-		"old_data":     oldDirInfo,
-		"app_settings": appSettings,
+		"users":                  adminUsers,
+		"free_space":             freeSpace,
+		"old_data":               oldDirInfo,
+		"app_settings":           appSettings,
+		"share_session_settings": shareSessionSettings,
+	})
+}
+
+func GetShareSessionSettings(w http.ResponseWriter, r *http.Request) {
+	if !validateAdminPasswordInRequest(r) {
+		http.Error(w, "Invalid admin password", http.StatusUnauthorized)
+		return
+	}
+
+	settings, err := utils.GetShareSessionSettings()
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success":  true,
+		"settings": settings,
+	})
+}
+
+func SaveShareSessionSettings(w http.ResponseWriter, r *http.Request) {
+	var req SaveShareSessionSettingsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	adminPassword := os.Getenv("ADMIN_PASSWORD")
+	if adminPassword == "" || req.AdminPassword != adminPassword {
+		http.Error(w, "Invalid admin password", http.StatusUnauthorized)
+		return
+	}
+
+	if req.CookieDays < 1 || req.CookieDays > 365 {
+		http.Error(w, "cookie_days must be between 1 and 365", http.StatusBadRequest)
+		return
+	}
+
+	settings, err := utils.SetShareSessionCookieDays(req.CookieDays)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success":  true,
+		"settings": settings,
+	})
+}
+
+func InvalidateShareSessionCookies(w http.ResponseWriter, r *http.Request) {
+	if !validateAdminPasswordInRequest(r) {
+		http.Error(w, "Invalid admin password", http.StatusUnauthorized)
+		return
+	}
+
+	settings, err := utils.InvalidateAllShareSessionCookies()
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success":  true,
+		"settings": settings,
 	})
 }
 
