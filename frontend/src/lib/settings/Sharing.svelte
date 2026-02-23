@@ -381,58 +381,60 @@
 	{:else if !shareAccessLogs || shareAccessLogs.length === 0}
 		<div class="form-text">No share access entries yet.</div>
 	{:else}
-		<div class="accordion" id="shareAccessLogAccordion">
+		<div class="d-flex flex-column gap-2">
 			{#each groupedShareAccessLogs() as group, index (group.email)}
-				<div class="accordion-item">
-					<h2 class="accordion-header" id={`shareAccessHeading-${index}`}>
-						<button
-							class="accordion-button {index === 0 ? '' : 'collapsed'}"
-							type="button"
-							data-bs-toggle="collapse"
-							data-bs-target={`#shareAccessCollapse-${index}`}
-							aria-expanded={index === 0}
-							aria-controls={`shareAccessCollapse-${index}`}
-						>
-							<span class="share-log-email me-2">{group.email}</span>
-							<span class="badge text-bg-secondary">{group.items.length}</span>
-						</button>
-					</h2>
-					<div
-						id={`shareAccessCollapse-${index}`}
-						class="accordion-collapse collapse {index === 0 ? 'show' : ''}"
-						aria-labelledby={`shareAccessHeading-${index}`}
-						data-bs-parent="#shareAccessLogAccordion"
-					>
-						<div class="accordion-body p-0">
-							<div class="table-responsive share-log-group-scroll">
-								<table class="table table-sm table-striped align-middle mb-0">
-									<thead>
-										<tr>
-											<th>Time</th>
-											<th>IP</th>
-											<th>Event</th>
-										</tr>
-									</thead>
-									<tbody>
-										{#each group.items as log}
-											<tr>
-												<td>{formatDate(log.time)}</td>
-												<td>{log.ip || '-'}</td>
-												<td>{log.event || '-'}</td>
-											</tr>
-										{/each}
-									</tbody>
-								</table>
-							</div>
-						</div>
+				<details class="share-log-group" open={index === 0}>
+					<summary class="share-log-summary">
+						<span class="share-log-email me-2">{group.email}</span>
+						<span class="badge text-bg-secondary">{group.items.length}</span>
+					</summary>
+					<div class="table-responsive share-log-group-scroll mt-2">
+						<table class="table table-sm table-striped align-middle mb-0">
+							<thead>
+								<tr>
+									<th>Time</th>
+									<th>IP</th>
+									<th>Event</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each group.items as log}
+									<tr>
+										<td>{formatDate(log.time)}</td>
+										<td>{log.ip || '-'}</td>
+										<td>{log.event || '-'}</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
 					</div>
-				</div>
+				</details>
 			{/each}
 		</div>
 	{/if}
 </div>
 
 <style>
+	.share-log-group {
+		border: 1px solid var(--bs-border-color);
+		border-radius: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		background: var(--bs-body-bg);
+	}
+
+	.share-log-summary {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		cursor: pointer;
+		font-weight: 600;
+		list-style: none;
+	}
+
+	.share-log-summary::-webkit-details-marker {
+		display: none;
+	}
+
 	.share-log-group-scroll {
 		max-height: 260px;
 		overflow-y: auto;
