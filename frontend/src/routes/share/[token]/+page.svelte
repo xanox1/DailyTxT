@@ -28,6 +28,50 @@
 	let verificationError = $state('');
 	let verificationSuccess = $state('');
 	let codeSent = $state(false);
+	let jumpDate = $state(new Date().toISOString().slice(0, 10));
+	let pendingJumpDay = $state(null);
+	let pendingJumpYear = $state(null);
+	let pendingJumpMonth = $state(null);
+
+	function parseDateInputValue(value) {
+		if (!value) {
+			return null;
+		}
+
+		const [yearRaw, monthRaw, dayRaw] = value.split('-');
+		const year = Number(yearRaw);
+		const month = Number(monthRaw);
+		const day = Number(dayRaw);
+
+		if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+			return null;
+		}
+
+		if (month < 1 || month > 12 || day < 1 || day > 31) {
+			return null;
+		}
+
+		return { year, month: month - 1, day };
+	}
+
+	function jumpToDate() {
+		const parsedDate = parseDateInputValue(jumpDate);
+		if (!parsedDate) {
+			return;
+		}
+
+		pendingJumpDay = parsedDate.day;
+		pendingJumpYear = parsedDate.year;
+		pendingJumpMonth = parsedDate.month;
+
+		const monthChanged = currentYear !== parsedDate.year || currentMonth !== parsedDate.month;
+		currentYear = parsedDate.year;
+		currentMonth = parsedDate.month;
+
+		if (!monthChanged) {
+			loadMonthForSharedReading(parsedDate.year, parsedDate.month);
+		}
+	}
 
 	function getMonthLabel(year, monthIndex) {
 		return new Date(year, monthIndex, 1).toLocaleDateString($tolgee.getLanguage(), {
@@ -125,7 +169,21 @@
 			})
 			.then((response) => {
 				logs = response.data.sort((a, b) => a.day - b.day);
-				scrollToTodayIfCurrentMonth(year, month);
+
+				if (
+					pendingJumpDay !== null &&
+					pendingJumpYear === year &&
+					pendingJumpMonth === month
+				) {
+					requestAnimationFrame(() => {
+						scrollToDay(pendingJumpDay, 'smooth');
+					});
+					pendingJumpDay = null;
+					pendingJumpYear = null;
+					pendingJumpMonth = null;
+				} else {
+					scrollToTodayIfCurrentMonth(year, month);
+				}
 			})
 			.catch((error) => {
 				if (error.response?.status === 401) {
@@ -205,6 +263,58 @@
 
 	const imageExtensions = ['jpeg', 'jpg', 'gif', 'png', 'webp', 'bmp'];
 
+	function toSharedDownloadUrl(rawUrl) {
+		if (!rawUrl || !token) {
+			return rawUrl;
+		}
+
+		try {
+			const parsedUrl = new URL(rawUrl, window.location.origin);
+			const normalizedPath = parsedUrl.pathname.replace(/\/+$/, '');
+			const isLogsDownloadEndpoint =
+				normalizedPath.endsWith('/logs/downloadFile') ||
+				normalizedPath.endsWith('/api/logs/downloadFile');
+
+			if (!isLogsDownloadEndpoint) {
+				return rawUrl;
+			}
+
+			const uuid = parsedUrl.searchParams.get('uuid');
+			if (!uuid) {
+				return rawUrl;
+			}
+
+			const sharedDownloadUrl = new URL(`${API_URL}/share/downloadFile`);
+			sharedDownloadUrl.searchParams.set('token', token);
+			sharedDownloadUrl.searchParams.set('uuid', uuid);
+			return sharedDownloadUrl.toString();
+		} catch {
+			return rawUrl;
+		}
+	}
+
+	function parseSharedMarkdown(markdownText) {
+		const html = parseMarkdown(markdownText);
+		if (!html || typeof window === 'undefined') {
+			return html;
+		}
+
+		const parser = new DOMParser();
+		const documentFragment = parser.parseFromString(`<body>${html}</body>`, 'text/html');
+
+		documentFragment.body.querySelectorAll('img[src]').forEach((img) => {
+			const src = img.getAttribute('src');
+			img.setAttribute('src', toSharedDownloadUrl(src));
+		});
+
+		documentFragment.body.querySelectorAll('a[href]').forEach((anchor) => {
+			const href = anchor.getAttribute('href');
+			anchor.setAttribute('href', toSharedDownloadUrl(href));
+		});
+
+		return documentFragment.body.innerHTML;
+	}
+
 	function getImageSrc(uuid) {
 		return API_URL + '/share/downloadFile?token=' + encodeURIComponent(token) + '&uuid=' + encodeURIComponent(uuid);
 	}
@@ -256,7 +366,24 @@
 				<span class="fw-semibold">📖 DailyTxT</span>
 				<span class="badge bg-secondary">{$t('shareView.badge_read_only')}</span>
 			</div>
-			<div class="d-flex align-items-center gap-2">
+			<div class="d-flex align-items-center gap-2 nav-actions">
+				<div class="dropdown">
+					<button
+						class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+						type="button"
+						data-bs-toggle="dropdown"
+						aria-expanded="false"
+					>
+						📅 <span>Ga naar datum</span>
+					</button>
+					<div class="dropdown-menu dropdown-menu-end p-3 jump-calendar-menu">
+						<label class="form-label mb-2" for="jumpDateInput">Kies datum</label>
+						<input id="jumpDateInput" class="form-control form-control-sm mb-2" type="date" bind:value={jumpDate} />
+						<button class="btn btn-sm btn-primary w-100" onclick={jumpToDate}>
+							Ga
+						</button>
+					</div>
+				</div>
 				<button class="btn btn-sm btn-outline-secondary" onclick={prevMonth}>‹</button>
 				<span class="fw-semibold">{getMonthLabel(currentYear, currentMonth)}</span>
 				<button class="btn btn-sm btn-outline-secondary" onclick={nextMonth}>›</button>
@@ -355,7 +482,7 @@
 												revealWindowMs: 3000
 											}}
 										>
-											{@html parseMarkdown(log.text)}
+											{@html parseSharedMarkdown(log.text)}
 										</div>
 									{/if}
 									{#if log.files && log.files.length > 0}
@@ -410,6 +537,16 @@
 
 	.files {
 		max-width: 100%;
+	}
+
+	.nav-actions {
+		flex-wrap: wrap;
+	}
+
+	.jump-calendar-menu {
+		min-width: 260px;
+		border-radius: 0.8rem;
+		backdrop-filter: blur(6px);
 	}
 
 	.verification-box {
