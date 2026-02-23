@@ -211,7 +211,8 @@ The old version 1 is moved to the [v1 branch](https://github.com/PhiTux/DailyTxT
 ---
 #### 2.4.3 (2026-02-23) (NOT YET RELEASED)
 ```
-- Updated dependencies for security reasons
+- The current day is now always highlighted in the calendar with an orange dotted border
+- Markdown-Links are now always opening in a separate tab
 - Integrated emojis into the frontend instead of loading them from a CDN.
 - Improved heading sizes (H1/H2) in editor preview/history, read mode, and shared read-only mode.
 - Shared read-only view now uses the same gradient-style background as the normal read view.
@@ -223,6 +224,7 @@ The old version 1 is moved to the [v1 branch](https://github.com/PhiTux/DailyTxT
 - Added shared search across all months/years via a dedicated share endpoint.
 - SMTP warning in sharing settings now validates saved UI SMTP settings instead of ENV defaults.
 - Fixed a shared read-only reload loop caused by calendar state updates.
+- Updated dependencies for security reasons
 ```
 ---
 
