@@ -371,6 +371,18 @@
     "save": "Lagre",
     "security": "Sikkerhet",
     "security.change_password": "Endre passord",
+    "sharing_session": {
+      "confirm_invalidate": "Ugyldiggjøre alle delte økter som er verifisert nå? Besøkende må verifisere på nytt.",
+      "current_version": "Gjeldende øktversjon",
+      "description": "Konfigurer hvor lenge en verifisert delt visningsøkt er gyldig, og tving ny verifisering ved behov.",
+      "error": "Kunne ikke oppdatere innstillinger for delt økt.",
+      "invalidate_button": "Ugyldiggjør alle økter",
+      "refresh_button": "Oppdater",
+      "save_button": "Lagre øktinnstillinger",
+      "success": "Innstillinger for delt økt er oppdatert.",
+      "timeout_label": "Tidsavbrudd for økt (dager)",
+      "title": "Innstillinger for delt økt"
+    },
     "selectTimezone": "Velg tidssone",
     "set_language_manually": "Sett språk permanent",
     "show_changelog_on_update": "Endringslogg etter oppdatering",

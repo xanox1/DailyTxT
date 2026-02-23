@@ -371,6 +371,18 @@
     "save": "Salva",
     "security": "Sicurezza",
     "security.change_password": "Cambia password",
+    "sharing_session": {
+      "confirm_invalidate": "Invalidare tutte le sessioni condivise attualmente verificate? I visitatori dovranno verificarsi di nuovo.",
+      "current_version": "Versione corrente della sessione",
+      "description": "Configura per quanto tempo una sessione di visualizzazione condivisa verificata resta valida e forza una nuova verifica quando necessario.",
+      "error": "Impossibile aggiornare le impostazioni della sessione condivisa.",
+      "invalidate_button": "Invalida tutte le sessioni",
+      "refresh_button": "Aggiorna",
+      "save_button": "Salva impostazioni sessione",
+      "success": "Impostazioni della sessione condivisa aggiornate.",
+      "timeout_label": "Timeout sessione (giorni)",
+      "title": "Impostazioni sessione condivisa"
+    },
     "selectTimezone": "Seleziona fuso orario",
     "set_language_manually": "Imposta la lingua in modo permanente",
     "show_changelog_on_update": "Registro delle modifiche dopo l'aggiornamento",

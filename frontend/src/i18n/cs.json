@@ -371,6 +371,18 @@
     "save": "Uložit",
     "security": "Bezpečnost",
     "security.change_password": "Změnit heslo",
+    "sharing_session": {
+      "confirm_invalidate": "Zneplatnit všechny aktuálně ověřené sdílené relace? Návštěvníci se budou muset ověřit znovu.",
+      "current_version": "Aktuální verze relace",
+      "description": "Nastavte, jak dlouho zůstane ověřená relace sdíleného zobrazení platná, a v případě potřeby vynuťte nové ověření.",
+      "error": "Nastavení sdílené relace se nepodařilo aktualizovat.",
+      "invalidate_button": "Zneplatnit všechny relace",
+      "refresh_button": "Obnovit",
+      "save_button": "Uložit nastavení relace",
+      "success": "Nastavení sdílené relace bylo aktualizováno.",
+      "timeout_label": "Časový limit relace (dny)",
+      "title": "Nastavení sdílené relace"
+    },
     "selectTimezone": "Vybrat časové pásmo",
     "set_language_manually": "Nastavit jazyk trvale",
     "show_changelog_on_update": "Protokol změn po aktualizaci",

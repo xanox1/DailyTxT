@@ -397,6 +397,18 @@
     "security": "Security",
     "security.change_password": "Change password",
     "sharing": "Sharing",
+    "sharing_session": {
+      "confirm_invalidate": "Invalidate all currently verified shared sessions? Visitors must verify again.",
+      "current_version": "Current session version",
+      "description": "Configure how long a verified shared-view session stays valid and force re-verification when needed.",
+      "error": "Could not update shared session settings.",
+      "invalidate_button": "Invalidate all sessions",
+      "refresh_button": "Refresh",
+      "save_button": "Save session settings",
+      "success": "Shared session settings updated.",
+      "timeout_label": "Session timeout (days)",
+      "title": "Shared session settings"
+    },
     "selectTimezone": "Select timezone",
     "set_language_manually": "Set language permanently",
     "show_changelog_on_update": "Changelog after update",

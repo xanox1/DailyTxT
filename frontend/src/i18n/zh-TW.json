@@ -371,6 +371,18 @@
     "save": "儲存",
     "security": "安全",
     "security.change_password": "更改密碼",
+    "sharing_session": {
+      "confirm_invalidate": "要使目前所有已驗證的共享工作階段失效嗎？訪客將需要重新驗證。",
+      "current_version": "目前工作階段版本",
+      "description": "設定已驗證的共享檢視工作階段可維持有效的時間，並在需要時強制重新驗證。",
+      "error": "無法更新共享工作階段設定。",
+      "invalidate_button": "使所有工作階段失效",
+      "refresh_button": "重新整理",
+      "save_button": "儲存工作階段設定",
+      "success": "共享工作階段設定已更新。",
+      "timeout_label": "工作階段逾時（天）",
+      "title": "共享工作階段設定"
+    },
     "selectTimezone": "選擇時區",
     "set_language_manually": "永久設定語言",
     "show_changelog_on_update": "更新后的更改日志",

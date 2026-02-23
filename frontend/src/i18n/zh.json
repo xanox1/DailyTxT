@@ -345,6 +345,18 @@
     "save": "儲存",
     "security": "安全",
     "security.change_password": "更改密码",
+    "sharing_session": {
+      "confirm_invalidate": "要使所有当前已验证的共享会话失效吗？访客需要重新验证。",
+      "current_version": "当前会话版本",
+      "description": "配置已验证的共享视图会话可保持有效的时长，并在需要时强制重新验证。",
+      "error": "无法更新共享会话设置。",
+      "invalidate_button": "使所有会话失效",
+      "refresh_button": "刷新",
+      "save_button": "保存会话设置",
+      "success": "共享会话设置已更新。",
+      "timeout_label": "会话超时（天）",
+      "title": "共享会话设置"
+    },
     "selectTimezone": "选择是区",
     "set_language_manually": "永久设定语言",
     "show_changelog_on_update": "更新后的更改日志",

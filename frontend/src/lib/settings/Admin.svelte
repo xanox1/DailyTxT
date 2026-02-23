@@ -25,13 +25,6 @@
 	let oldData = $state({});
 	let users = $state([]);
 	let appSettings = $state({});
-	let shareSessionSettings = $state({ cookie_days: 30, cookie_version: 1 });
-	let shareCookieDaysInput = $state(30);
-	let isSavingShareSessionSettings = $state(false);
-	let isInvalidatingShareSessions = $state(false);
-	let confirmInvalidateShareSessions = $state(false);
-	let shareSessionSuccess = $state('');
-	let shareSessionError = $state('');
 	let isLoadingUsers = $state(false);
 	let deleteUserId = $state(null);
 	let isDeletingUser = $state(false);
@@ -102,8 +95,6 @@
 			freeSpace = response.data.free_space;
 			oldData = response.data.old_data;
 			appSettings = response.data.app_settings || {};
-			shareSessionSettings = response.data.share_session_settings || shareSessionSettings;
-			shareCookieDaysInput = shareSessionSettings.cookie_days || 30;
 
 			// Also check registration status
 			await checkRegistrationAllowed();
@@ -233,67 +224,6 @@
 	function toggleDeleteOldDataConfirmation() {
 		confirmDeleteOldData = !confirmDeleteOldData;
 	}
-
-	async function saveShareSessionSettings() {
-		if (isSavingShareSessionSettings) return;
-
-		const parsedDays = Number(shareCookieDaysInput);
-		if (!Number.isInteger(parsedDays) || parsedDays < 1 || parsedDays > 365) {
-			shareSessionError = 'Cookie timeout must be between 1 and 365 days.';
-			shareSessionSuccess = '';
-			return;
-		}
-
-		isSavingShareSessionSettings = true;
-		shareSessionError = '';
-		shareSessionSuccess = '';
-
-		try {
-			const response = await makeAdminApiCall('/admin/save-share-session-settings', {
-				cookie_days: parsedDays
-			});
-
-			if (response.data?.success && response.data?.settings) {
-				shareSessionSettings = response.data.settings;
-				shareCookieDaysInput = shareSessionSettings.cookie_days;
-				shareSessionSuccess = 'Shared-view session timeout updated.';
-			}
-		} catch (error) {
-			if (error.response?.status === 401) {
-				resetAdminState();
-				return;
-			}
-			shareSessionError = 'Failed to update shared-view session timeout.';
-		} finally {
-			isSavingShareSessionSettings = false;
-		}
-	}
-
-	async function invalidateAllShareSessions() {
-		if (isInvalidatingShareSessions) return;
-
-		isInvalidatingShareSessions = true;
-		shareSessionError = '';
-		shareSessionSuccess = '';
-
-		try {
-			const response = await makeAdminApiCall('/admin/invalidate-share-session-cookies');
-			if (response.data?.success && response.data?.settings) {
-				shareSessionSettings = response.data.settings;
-				shareCookieDaysInput = shareSessionSettings.cookie_days;
-				confirmInvalidateShareSessions = false;
-				shareSessionSuccess = 'All shared-view sessions were invalidated.';
-			}
-		} catch (error) {
-			if (error.response?.status === 401) {
-				resetAdminState();
-				return;
-			}
-			shareSessionError = 'Failed to invalidate shared-view sessions.';
-		} finally {
-			isInvalidatingShareSessions = false;
-		}
-	}
 </script>
 
 <div class="settings-admin">
@@ -422,94 +352,6 @@
 					</div>
 				</div>
 			{/if}
-
-			<!-- Shared View Session Controls -->
-			<div class="card mt-4">
-				<div class="card-header">
-					<h4 class="card-title mb-0">🔗 Shared view sessions</h4>
-				</div>
-				<div class="card-body">
-					<p class="text-muted mb-3">
-						Configure how long a verified shared-view session cookie remains valid, and invalidate all currently active shared-view sessions.
-					</p>
-
-					<div class="row g-3 align-items-end">
-						<div class="col-md-4">
-							<label class="form-label" for="shareCookieDaysInput">Session cookie timeout (days)</label>
-							<input
-								id="shareCookieDaysInput"
-								type="number"
-								class="form-control"
-								min="1"
-								max="365"
-								bind:value={shareCookieDaysInput}
-							/>
-						</div>
-						<div class="col-md-4">
-							<button
-								class="btn btn-primary"
-								onclick={saveShareSessionSettings}
-								disabled={isSavingShareSessionSettings}
-							>
-								{#if isSavingShareSessionSettings}
-									<span class="spinner-border spinner-border-sm me-2"></span>
-								{/if}
-								Save timeout
-							</button>
-						</div>
-					</div>
-
-					<div class="mt-3">
-						<div>
-							<strong>Current cookie version:</strong> {shareSessionSettings.cookie_version}
-						</div>
-					</div>
-
-					<div class="mt-3">
-						<button
-							class="btn btn-outline-danger"
-							onclick={() => (confirmInvalidateShareSessions = !confirmInvalidateShareSessions)}
-							disabled={isInvalidatingShareSessions}
-						>
-							Invalidate all shared-view sessions
-						</button>
-
-						{#if confirmInvalidateShareSessions}
-							<div class="alert alert-danger mt-3 mb-0" transition:slide>
-								<p class="mb-2">
-									<strong>Confirm invalidation?</strong><br />
-									This forces all currently verified shared links to verify again.
-								</p>
-								<div class="d-flex gap-2">
-									<button
-										class="btn btn-secondary btn-sm"
-										onclick={() => (confirmInvalidateShareSessions = false)}
-									>
-										Cancel
-									</button>
-									<button
-										class="btn btn-danger btn-sm"
-										onclick={invalidateAllShareSessions}
-										disabled={isInvalidatingShareSessions}
-									>
-										{#if isInvalidatingShareSessions}
-											<span class="spinner-border spinner-border-sm me-1"></span>
-										{/if}
-										Invalidate now
-									</button>
-								</div>
-							</div>
-						{/if}
-					</div>
-
-					{#if shareSessionSuccess}
-						<div class="alert alert-success mt-3 mb-0" transition:slide>{shareSessionSuccess}</div>
-					{/if}
-					{#if shareSessionError}
-						<div class="alert alert-danger mt-3 mb-0" transition:slide>{shareSessionError}</div>
-					{/if}
-				</div>
-			</div>
 
 			<!-- User management card -->
 			<div class="card mt-4">

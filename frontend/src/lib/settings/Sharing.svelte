@@ -2,6 +2,9 @@
 	import { slide } from 'svelte/transition';
 	import { Fa } from 'svelte-fa';
 	import { faCopy, faCheck, faLink, faTrash, faRotate } from '@fortawesome/free-solid-svg-icons';
+	import { getTranslate } from '@tolgee/svelte';
+
+	const { t } = getTranslate();
 
 	let {
 		hasShareToken,
@@ -38,7 +41,17 @@
 		testShareSMTP,
 		isTestingShareSMTP,
 		showShareSMTPTestError,
-		showShareSMTPTestSuccess
+		showShareSMTPTestSuccess,
+		shareSessionCookieDays = $bindable(30),
+		shareSessionCookieVersion = 1,
+		isLoadingShareSessionSettings,
+		isSavingShareSessionSettings,
+		showShareSessionSettingsError,
+		showShareSessionSettingsSuccess,
+		isInvalidatingShareSessionCookies,
+		loadShareSessionSettings,
+		saveShareSessionSettings,
+		invalidateShareSessionCookies
 	} = $props();
 
 	function formatDate(value) {
@@ -51,6 +64,12 @@
 	function confirmClearLogs() {
 		if (window.confirm('Clear all share access logs? This cannot be undone.')) {
 			clearShareAccessLogs();
+		}
+	}
+
+	function confirmInvalidateShareSessions() {
+		if (window.confirm($t('settings.sharing_session.confirm_invalidate'))) {
+			invalidateShareSessionCookies();
 		}
 	}
 </script>
@@ -250,6 +269,66 @@
 	{#if showShareVerificationSettingsSuccess}
 		<div class="alert alert-success mb-3" role="alert" transition:slide>
 			Verification settings saved.
+		</div>
+	{/if}
+
+	<hr class="my-4" />
+
+	<h5 class="mb-2">{$t('settings.sharing_session.title')}</h5>
+	<p class="form-text mb-2">
+		{$t('settings.sharing_session.description')}
+	</p>
+
+	<div class="row g-2 align-items-end mb-2">
+		<div class="col-md-4">
+			<label class="form-label" for="shareSessionCookieDays">{$t('settings.sharing_session.timeout_label')}</label>
+			<input
+				id="shareSessionCookieDays"
+				type="number"
+				class="form-control"
+				min="1"
+				max="365"
+				bind:value={shareSessionCookieDays}
+				disabled={isLoadingShareSessionSettings || isSavingShareSessionSettings}
+			/>
+		</div>
+		<div class="col-md-8 d-flex gap-2 flex-wrap">
+			<button
+				class="btn btn-outline-primary"
+				onclick={saveShareSessionSettings}
+				disabled={isLoadingShareSessionSettings || isSavingShareSessionSettings}
+			>
+				{#if isSavingShareSessionSettings}
+					<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+				{/if}
+				{$t('settings.sharing_session.save_button')}
+			</button>
+			<button class="btn btn-outline-secondary" onclick={loadShareSessionSettings} disabled={isLoadingShareSessionSettings}>
+				{$t('settings.sharing_session.refresh_button')}
+			</button>
+			<button
+				class="btn btn-outline-danger"
+				onclick={confirmInvalidateShareSessions}
+				disabled={isInvalidatingShareSessionCookies}
+			>
+				{#if isInvalidatingShareSessionCookies}
+					<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+				{/if}
+				{$t('settings.sharing_session.invalidate_button')}
+			</button>
+		</div>
+	</div>
+
+	<div class="form-text mb-3">{$t('settings.sharing_session.current_version')}: {shareSessionCookieVersion}</div>
+
+	{#if showShareSessionSettingsError}
+		<div class="alert alert-danger mb-2" role="alert" transition:slide>
+			{$t('settings.sharing_session.error')}
+		</div>
+	{/if}
+	{#if showShareSessionSettingsSuccess}
+		<div class="alert alert-success mb-2" role="alert" transition:slide>
+			{$t('settings.sharing_session.success')}
 		</div>
 	{/if}
 

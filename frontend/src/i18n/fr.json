@@ -371,6 +371,18 @@
     "save": "Enregistrer",
     "security": "Sécurité",
     "security.change_password": "Changer le mot de passe",
+    "sharing_session": {
+      "confirm_invalidate": "Invalider toutes les sessions partagées actuellement vérifiées ? Les visiteurs devront se vérifier à nouveau.",
+      "current_version": "Version actuelle de la session",
+      "description": "Configurez la durée de validité d'une session de vue partagée vérifiée et forcez une nouvelle vérification si nécessaire.",
+      "error": "Impossible de mettre à jour les paramètres de session partagée.",
+      "invalidate_button": "Invalider toutes les sessions",
+      "refresh_button": "Rafraîchir",
+      "save_button": "Enregistrer les paramètres de session",
+      "success": "Paramètres de session partagée mis à jour.",
+      "timeout_label": "Expiration de session (jours)",
+      "title": "Paramètres de session partagée"
+    },
     "selectTimezone": "Choisir le fuseau horaire",
     "set_language_manually": "Définir la langue manuellement",
     "show_changelog_on_update": "Journal des modifications après la mise à jour",

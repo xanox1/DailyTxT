@@ -47,22 +47,22 @@ func validateShareToken(r *http.Request) (int, string, string, error) {
 	return userID, derivedKey, tokenHash, nil
 }
 
-func hasValidShareVerificationCookie(r *http.Request, tokenHash string) bool {
+func hasValidShareVerificationCookie(r *http.Request, tokenHash string, userID int) bool {
 	cookie, err := r.Cookie(utils.ShareVerificationCookieName)
 	if err != nil {
 		return false
 	}
 
-	return utils.ValidateShareVerificationCookieValue(cookie.Value, tokenHash)
+	return utils.ValidateShareVerificationCookieValue(cookie.Value, tokenHash, userID)
 }
 
-func getVerifiedShareEmail(r *http.Request, tokenHash string) string {
+func getVerifiedShareEmail(r *http.Request, tokenHash string, userID int) string {
 	cookie, err := r.Cookie(utils.ShareVerificationCookieName)
 	if err != nil {
 		return ""
 	}
 
-	email, ok := utils.GetShareVerificationEmailFromCookieValue(cookie.Value, tokenHash)
+	email, ok := utils.GetShareVerificationEmailFromCookieValue(cookie.Value, tokenHash, userID)
 	if !ok {
 		return ""
 	}
@@ -127,6 +127,10 @@ type testShareSMTPRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	From     string `json:"from"`
+}
+
+type saveShareSessionSettingsRequest struct {
+	CookieDays int `json:"cookie_days"`
 }
 
 // GetShareVerificationSettings returns user-specific share verification settings.
@@ -289,6 +293,76 @@ func ClearShareAccessLogs(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetShareSessionSettings returns shared-view session settings for the authenticated user.
+func GetShareSessionSettings(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(utils.UserIDKey).(int)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	settings, err := utils.GetShareSessionSettingsForUser(userID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error retrieving share session settings: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, map[string]any{
+		"settings": settings,
+	})
+}
+
+// SaveShareSessionSettings saves shared-view session settings for the authenticated user.
+func SaveShareSessionSettings(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(utils.UserIDKey).(int)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req saveShareSessionSettingsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.CookieDays < 1 || req.CookieDays > 365 {
+		http.Error(w, "cookie_days must be between 1 and 365", http.StatusBadRequest)
+		return
+	}
+
+	settings, err := utils.SetShareSessionCookieDaysForUser(userID, req.CookieDays)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error saving share session settings: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, map[string]any{
+		"success":  true,
+		"settings": settings,
+	})
+}
+
+// InvalidateShareSessionCookies invalidates all shared-view session cookies for the authenticated user.
+func InvalidateShareSessionCookies(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(utils.UserIDKey).(int)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	settings, err := utils.InvalidateShareSessionCookiesForUser(userID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error invalidating share sessions: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, map[string]any{
+		"success":  true,
+		"settings": settings,
+	})
+}
+
 // SaveShareVerificationSettings saves user-specific share verification settings.
 func SaveShareVerificationSettings(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(utils.UserIDKey).(int)
@@ -365,7 +439,7 @@ func ShareVerificationStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	verified := !required || hasValidShareVerificationCookie(r, tokenHash)
+	verified := !required || hasValidShareVerificationCookie(r, tokenHash, userID)
 
 	utils.JSONResponse(w, http.StatusOK, map[string]any{
 		"required": required,
@@ -479,8 +553,8 @@ func VerifyShareVerificationCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expiresAt := time.Now().Add(time.Duration(utils.GetShareSessionCookieDaysOrDefault()) * 24 * time.Hour)
-	cookieValue, err := utils.BuildShareVerificationCookieValue(tokenHash, email, expiresAt)
+	expiresAt := time.Now().Add(time.Duration(utils.GetShareSessionCookieDaysForUserOrDefault(userID)) * 24 * time.Hour)
+	cookieValue, err := utils.BuildShareVerificationCookieValue(userID, tokenHash, email, expiresAt)
 	if err != nil {
 		http.Error(w, "Failed to create verification session", http.StatusInternalServerError)
 		return
@@ -592,7 +666,7 @@ func SharedGetMarkedDays(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if required && !hasValidShareVerificationCookie(r, tokenHash) {
+	if required && !hasValidShareVerificationCookie(r, tokenHash, userID) {
 		http.Error(w, "Verification required", http.StatusForbidden)
 		return
 	}
@@ -647,7 +721,7 @@ func SharedGetMarkedDays(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if required {
-		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash), getClientIP(r), "access", r.URL.Path)
+		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash, userID), getClientIP(r), "access", r.URL.Path)
 	}
 }
 
@@ -665,7 +739,7 @@ func SharedLoadMonthForReading(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if required && !hasValidShareVerificationCookie(r, tokenHash) {
+	if required && !hasValidShareVerificationCookie(r, tokenHash, userID) {
 		http.Error(w, "Verification required", http.StatusForbidden)
 		return
 	}
@@ -783,7 +857,7 @@ func SharedLoadMonthForReading(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(w, http.StatusOK, result)
 
 	if required {
-		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash), getClientIP(r), "access", r.URL.Path)
+		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash, userID), getClientIP(r), "access", r.URL.Path)
 	}
 }
 
@@ -801,7 +875,7 @@ func SharedDownloadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if required && !hasValidShareVerificationCookie(r, tokenHash) {
+	if required && !hasValidShareVerificationCookie(r, tokenHash, userID) {
 		http.Error(w, "Verification required", http.StatusForbidden)
 		return
 	}
@@ -842,6 +916,6 @@ func SharedDownloadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if required {
-		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash), getClientIP(r), "access", r.URL.Path)
+		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash, userID), getClientIP(r), "access", r.URL.Path)
 	}
 }

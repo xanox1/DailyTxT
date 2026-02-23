@@ -396,6 +396,18 @@
     "save": "Opslaan",
     "security": "Beveiliging",
     "security.change_password": "Wachtwoord wijzigen",
+    "sharing_session": {
+      "confirm_invalidate": "Alle momenteel geverifieerde gedeelde sessies ongeldig maken? Bezoekers moeten opnieuw verifiëren.",
+      "current_version": "Huidige sessieversie",
+      "description": "Stel in hoelang een geverifieerde shared-view sessie geldig blijft en forceer opnieuw verifiëren wanneer nodig.",
+      "error": "Bijwerken van gedeelde sessie-instellingen is mislukt.",
+      "invalidate_button": "Alle sessies ongeldig maken",
+      "refresh_button": "Vernieuwen",
+      "save_button": "Sessie-instellingen opslaan",
+      "success": "Gedeelde sessie-instellingen bijgewerkt.",
+      "timeout_label": "Sessie-timeout (dagen)",
+      "title": "Gedeelde sessie-instellingen"
+    },
     "selectTimezone": "Selecteer tijdzone",
     "set_language_manually": "Taal permanent instellen",
     "show_changelog_on_update": "Wijzigingslogboek na update",

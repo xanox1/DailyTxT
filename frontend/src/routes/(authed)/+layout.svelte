@@ -1079,6 +1079,13 @@
 	let showShareSMTPTestError = $state(false);
 	let showShareSMTPTestSuccess = $state(false);
 	let isClearingShareAccessLogs = $state(false);
+	let shareSessionCookieDays = $state(30);
+	let shareSessionCookieVersion = $state(1);
+	let isLoadingShareSessionSettings = $state(false);
+	let isSavingShareSessionSettings = $state(false);
+	let isInvalidatingShareSessionCookies = $state(false);
+	let showShareSessionSettingsError = $state(false);
+	let showShareSessionSettingsSuccess = $state(false);
 
 	function loadShareTokenInfo() {
 		axios
@@ -1086,6 +1093,7 @@
 			.then((response) => {
 				hasShareToken = response.data.has_token;
 				loadShareVerificationSettings();
+				loadShareSessionSettings();
 				loadShareSMTPSettings();
 				loadShareAccessLogs();
 			})
@@ -1190,6 +1198,89 @@
 			})
 			.catch((error) => {
 				console.error(error);
+			});
+	}
+
+	function loadShareSessionSettings() {
+		isLoadingShareSessionSettings = true;
+		showShareSessionSettingsError = false;
+
+		axios
+			.get(API_URL + '/users/getShareSessionSettings')
+			.then((response) => {
+				const settings = response.data.settings || {};
+				shareSessionCookieDays = settings.cookie_days || 30;
+				shareSessionCookieVersion = settings.cookie_version || 1;
+			})
+			.catch((error) => {
+				console.error(error);
+				showShareSessionSettingsError = true;
+			})
+			.finally(() => {
+				isLoadingShareSessionSettings = false;
+			});
+	}
+
+	function saveShareSessionSettings() {
+		if (isSavingShareSessionSettings) return;
+
+		const parsedDays = Number(shareSessionCookieDays);
+		if (!Number.isInteger(parsedDays) || parsedDays < 1 || parsedDays > 365) {
+			showShareSessionSettingsError = true;
+			showShareSessionSettingsSuccess = false;
+			return;
+		}
+
+		isSavingShareSessionSettings = true;
+		showShareSessionSettingsError = false;
+		showShareSessionSettingsSuccess = false;
+
+		axios
+			.post(API_URL + '/users/saveShareSessionSettings', {
+				cookie_days: parsedDays
+			})
+			.then((response) => {
+				const settings = response.data.settings || {};
+				shareSessionCookieDays = settings.cookie_days || parsedDays;
+				shareSessionCookieVersion = settings.cookie_version || shareSessionCookieVersion;
+				showShareSessionSettingsSuccess = true;
+				setTimeout(() => {
+					showShareSessionSettingsSuccess = false;
+				}, 3000);
+			})
+			.catch((error) => {
+				console.error(error);
+				showShareSessionSettingsError = true;
+			})
+			.finally(() => {
+				isSavingShareSessionSettings = false;
+			});
+	}
+
+	function invalidateShareSessionCookies() {
+		if (isInvalidatingShareSessionCookies) return;
+
+		isInvalidatingShareSessionCookies = true;
+		showShareSessionSettingsError = false;
+		showShareSessionSettingsSuccess = false;
+
+		axios
+			.post(API_URL + '/users/invalidateShareSessionCookies')
+			.then((response) => {
+				const settings = response.data.settings || {};
+				shareSessionCookieDays = settings.cookie_days || shareSessionCookieDays;
+				shareSessionCookieVersion = settings.cookie_version || shareSessionCookieVersion;
+				showShareSessionSettingsSuccess = true;
+				setTimeout(() => {
+					showShareSessionSettingsSuccess = false;
+				}, 3000);
+			})
+			.catch((error) => {
+				console.error(error);
+				showShareSessionSettingsError = true;
+			})
+			.finally(() => {
+				isInvalidatingShareSessionCookies = false;
 			});
 	}
 
@@ -2058,6 +2149,16 @@
 										{isTestingShareSMTP}
 										{showShareSMTPTestError}
 										{showShareSMTPTestSuccess}
+										bind:shareSessionCookieDays
+										{shareSessionCookieVersion}
+										{isLoadingShareSessionSettings}
+										{isSavingShareSessionSettings}
+										{showShareSessionSettingsError}
+										{showShareSessionSettingsSuccess}
+										{isInvalidatingShareSessionCookies}
+										{loadShareSessionSettings}
+										{saveShareSessionSettings}
+										{invalidateShareSessionCookies}
 									/>
 								</div>
 

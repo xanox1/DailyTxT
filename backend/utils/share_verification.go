@@ -10,8 +10,6 @@ import (
 	"math/big"
 	"net/mail"
 	"net/smtp"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -48,14 +46,7 @@ type ShareSessionSettings struct {
 var (
 	shareVerificationCodeStore = map[string]shareVerificationCodeEntry{}
 	shareVerificationCodeMu    sync.RWMutex
-	shareSessionSettingsMu     sync.RWMutex
-	shareSessionSettingsLoaded bool
-	shareSessionSettings       ShareSessionSettings
 )
-
-func shareSessionSettingsPath() string {
-	return filepath.Join(Settings.DataPath, "share_session_settings.json")
-}
 
 func normalizeShareSessionSettings(settings ShareSessionSettings) ShareSessionSettings {
 	if settings.CookieDays <= 0 {
@@ -70,126 +61,157 @@ func normalizeShareSessionSettings(settings ShareSessionSettings) ShareSessionSe
 	return settings
 }
 
-func persistShareSessionSettings(settings ShareSessionSettings) error {
-	settings = normalizeShareSessionSettings(settings)
+func GetShareSessionSettingsForUser(userID int) (ShareSessionSettings, error) {
+	UsersFileMutex.RLock()
+	defer UsersFileMutex.RUnlock()
 
-	if err := os.MkdirAll(Settings.DataPath, 0755); err != nil {
-		return fmt.Errorf("failed to ensure data directory exists: %w", err)
-	}
-
-	file, err := os.Create(shareSessionSettingsPath())
+	users, err := GetUsers()
 	if err != nil {
-		return fmt.Errorf("failed to open share session settings file: %w", err)
-	}
-	defer file.Close()
-
-	encoder := json.NewEncoder(file)
-	if Settings.Indent > 0 {
-		encoder.SetIndent("", fmt.Sprintf("%*s", Settings.Indent, ""))
+		return ShareSessionSettings{}, fmt.Errorf("error getting users: %v", err)
 	}
 
-	if err := encoder.Encode(settings); err != nil {
-		return fmt.Errorf("failed to encode share session settings: %w", err)
+	usersList, ok := users["users"].([]any)
+	if !ok {
+		return normalizeShareSessionSettings(ShareSessionSettings{}), nil
 	}
 
-	return nil
-}
-
-func ensureShareSessionSettingsLoaded() error {
-	shareSessionSettingsMu.RLock()
-	if shareSessionSettingsLoaded {
-		shareSessionSettingsMu.RUnlock()
-		return nil
-	}
-	shareSessionSettingsMu.RUnlock()
-
-	shareSessionSettingsMu.Lock()
-	defer shareSessionSettingsMu.Unlock()
-
-	if shareSessionSettingsLoaded {
-		return nil
-	}
-
-	loadedSettings := ShareSessionSettings{}
-	file, err := os.Open(shareSessionSettingsPath())
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return fmt.Errorf("failed to read share session settings: %w", err)
+	for _, u := range usersList {
+		uMap, ok := u.(map[string]any)
+		if !ok {
+			continue
+		}
+		if id, ok := uMap["user_id"].(float64); !ok || int(id) != userID {
+			continue
 		}
 
-		loadedSettings = normalizeShareSessionSettings(loadedSettings)
-		if err := persistShareSessionSettings(loadedSettings); err != nil {
-			return err
+		settings := ShareSessionSettings{}
+		if raw, exists := uMap["share_session_settings"]; exists {
+			if settingsMap, ok := raw.(map[string]any); ok {
+				if v, ok := settingsMap["cookie_days"].(float64); ok {
+					settings.CookieDays = int(v)
+				}
+				if v, ok := settingsMap["cookie_version"].(float64); ok {
+					settings.CookieVersion = int64(v)
+				}
+			}
 		}
-	} else {
-		defer file.Close()
-		if err := json.NewDecoder(file).Decode(&loadedSettings); err != nil {
-			return fmt.Errorf("failed to decode share session settings: %w", err)
-		}
-		loadedSettings = normalizeShareSessionSettings(loadedSettings)
+
+		return normalizeShareSessionSettings(settings), nil
 	}
 
-	shareSessionSettings = loadedSettings
-	shareSessionSettingsLoaded = true
-	return nil
+	return ShareSessionSettings{}, fmt.Errorf("user with ID %d does not exist", userID)
 }
 
-func GetShareSessionSettings() (ShareSessionSettings, error) {
-	if err := ensureShareSessionSettingsLoaded(); err != nil {
-		return ShareSessionSettings{}, err
-	}
-
-	shareSessionSettingsMu.RLock()
-	defer shareSessionSettingsMu.RUnlock()
-	return shareSessionSettings, nil
-}
-
-func SetShareSessionCookieDays(days int) (ShareSessionSettings, error) {
+func SetShareSessionCookieDaysForUser(userID, days int) (ShareSessionSettings, error) {
 	if days <= 0 {
 		return ShareSessionSettings{}, fmt.Errorf("cookie days must be greater than zero")
 	}
 
-	if err := ensureShareSessionSettingsLoaded(); err != nil {
-		return ShareSessionSettings{}, err
+	UsersFileMutex.Lock()
+	defer UsersFileMutex.Unlock()
+
+	users, err := GetUsers()
+	if err != nil {
+		return ShareSessionSettings{}, fmt.Errorf("error getting users: %v", err)
 	}
 
-	shareSessionSettingsMu.Lock()
-	defer shareSessionSettingsMu.Unlock()
-
-	updated := shareSessionSettings
-	updated.CookieDays = days
-	updated = normalizeShareSessionSettings(updated)
-
-	if err := persistShareSessionSettings(updated); err != nil {
-		return ShareSessionSettings{}, err
+	usersList, ok := users["users"].([]any)
+	if !ok {
+		return ShareSessionSettings{}, fmt.Errorf("invalid users format")
 	}
 
-	shareSessionSettings = updated
-	return shareSessionSettings, nil
+	for _, u := range usersList {
+		uMap, ok := u.(map[string]any)
+		if !ok {
+			continue
+		}
+		if id, ok := uMap["user_id"].(float64); !ok || int(id) != userID {
+			continue
+		}
+
+		settings := ShareSessionSettings{}
+		if raw, exists := uMap["share_session_settings"]; exists {
+			if settingsMap, ok := raw.(map[string]any); ok {
+				if v, ok := settingsMap["cookie_days"].(float64); ok {
+					settings.CookieDays = int(v)
+				}
+				if v, ok := settingsMap["cookie_version"].(float64); ok {
+					settings.CookieVersion = int64(v)
+				}
+			}
+		}
+		settings.CookieDays = days
+		settings = normalizeShareSessionSettings(settings)
+
+		uMap["share_session_settings"] = map[string]any{
+			"cookie_days":    settings.CookieDays,
+			"cookie_version": settings.CookieVersion,
+		}
+
+		if err := WriteUsers(users); err != nil {
+			return ShareSessionSettings{}, err
+		}
+
+		return settings, nil
+	}
+
+	return ShareSessionSettings{}, fmt.Errorf("user with ID %d does not exist", userID)
 }
 
-func InvalidateAllShareSessionCookies() (ShareSessionSettings, error) {
-	if err := ensureShareSessionSettingsLoaded(); err != nil {
-		return ShareSessionSettings{}, err
+func InvalidateShareSessionCookiesForUser(userID int) (ShareSessionSettings, error) {
+	UsersFileMutex.Lock()
+	defer UsersFileMutex.Unlock()
+
+	users, err := GetUsers()
+	if err != nil {
+		return ShareSessionSettings{}, fmt.Errorf("error getting users: %v", err)
 	}
 
-	shareSessionSettingsMu.Lock()
-	defer shareSessionSettingsMu.Unlock()
-
-	updated := shareSessionSettings
-	updated.CookieVersion++
-	updated = normalizeShareSessionSettings(updated)
-
-	if err := persistShareSessionSettings(updated); err != nil {
-		return ShareSessionSettings{}, err
+	usersList, ok := users["users"].([]any)
+	if !ok {
+		return ShareSessionSettings{}, fmt.Errorf("invalid users format")
 	}
 
-	shareSessionSettings = updated
-	return shareSessionSettings, nil
+	for _, u := range usersList {
+		uMap, ok := u.(map[string]any)
+		if !ok {
+			continue
+		}
+		if id, ok := uMap["user_id"].(float64); !ok || int(id) != userID {
+			continue
+		}
+
+		settings := ShareSessionSettings{}
+		if raw, exists := uMap["share_session_settings"]; exists {
+			if settingsMap, ok := raw.(map[string]any); ok {
+				if v, ok := settingsMap["cookie_days"].(float64); ok {
+					settings.CookieDays = int(v)
+				}
+				if v, ok := settingsMap["cookie_version"].(float64); ok {
+					settings.CookieVersion = int64(v)
+				}
+			}
+		}
+		settings.CookieVersion++
+		settings = normalizeShareSessionSettings(settings)
+
+		uMap["share_session_settings"] = map[string]any{
+			"cookie_days":    settings.CookieDays,
+			"cookie_version": settings.CookieVersion,
+		}
+
+		if err := WriteUsers(users); err != nil {
+			return ShareSessionSettings{}, err
+		}
+
+		return settings, nil
+	}
+
+	return ShareSessionSettings{}, fmt.Errorf("user with ID %d does not exist", userID)
 }
 
-func GetShareSessionCookieDaysOrDefault() int {
-	settings, err := GetShareSessionSettings()
+func GetShareSessionCookieDaysForUserOrDefault(userID int) int {
+	settings, err := GetShareSessionSettingsForUser(userID)
 	if err != nil {
 		if Settings.ShareCookieDays > 0 {
 			return Settings.ShareCookieDays
@@ -199,8 +221,8 @@ func GetShareSessionCookieDaysOrDefault() int {
 	return settings.CookieDays
 }
 
-func GetShareSessionCookieVersionOrDefault() int64 {
-	settings, err := GetShareSessionSettings()
+func GetShareSessionCookieVersionForUserOrDefault(userID int) int64 {
+	settings, err := GetShareSessionSettingsForUser(userID)
 	if err != nil {
 		return 1
 	}
@@ -449,8 +471,8 @@ func SendSMTPTestEmailWithSettings(settings ShareSMTPSettings, toEmail string) e
 	return smtp.SendMail(addr, auth, from, []string{toEmail}, []byte(message))
 }
 
-func BuildShareVerificationCookieValue(tokenHash, email string, expiresAt time.Time) (string, error) {
-	cookieVersion := GetShareSessionCookieVersionOrDefault()
+func BuildShareVerificationCookieValue(userID int, tokenHash, email string, expiresAt time.Time) (string, error) {
+	cookieVersion := GetShareSessionCookieVersionForUserOrDefault(userID)
 
 	payload := shareVerificationCookiePayload{
 		TokenHash: tokenHash,
@@ -469,20 +491,20 @@ func BuildShareVerificationCookieValue(tokenHash, email string, expiresAt time.T
 	return encodedPayload + "." + signature, nil
 }
 
-func ValidateShareVerificationCookieValue(value, tokenHash string) bool {
-	payload, ok := parseShareVerificationCookieValue(value, tokenHash)
+func ValidateShareVerificationCookieValue(value, tokenHash string, userID int) bool {
+	payload, ok := parseShareVerificationCookieValue(value, tokenHash, userID)
 	return ok && payload.Email != ""
 }
 
-func GetShareVerificationEmailFromCookieValue(value, tokenHash string) (string, bool) {
-	payload, ok := parseShareVerificationCookieValue(value, tokenHash)
+func GetShareVerificationEmailFromCookieValue(value, tokenHash string, userID int) (string, bool) {
+	payload, ok := parseShareVerificationCookieValue(value, tokenHash, userID)
 	if !ok || payload.Email == "" {
 		return "", false
 	}
 	return payload.Email, true
 }
 
-func parseShareVerificationCookieValue(value, tokenHash string) (shareVerificationCookiePayload, bool) {
+func parseShareVerificationCookieValue(value, tokenHash string, userID int) (shareVerificationCookiePayload, bool) {
 	parts := strings.Split(value, ".")
 	if len(parts) != 2 {
 		return shareVerificationCookiePayload{}, false
@@ -515,7 +537,7 @@ func parseShareVerificationCookieValue(value, tokenHash string) (shareVerificati
 		payloadVersion = 1
 	}
 
-	if payloadVersion != GetShareSessionCookieVersionOrDefault() {
+	if payloadVersion != GetShareSessionCookieVersionForUserOrDefault(userID) {
 		return shareVerificationCookiePayload{}, false
 	}
 

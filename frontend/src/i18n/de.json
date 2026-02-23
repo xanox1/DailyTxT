@@ -371,6 +371,18 @@
     "save": "Speichern",
     "security": "Sicherheit",
     "security.change_password": "Passwort ändern",
+    "sharing_session": {
+      "confirm_invalidate": "Alle derzeit verifizierten Freigabe-Sitzungen ungültig machen? Besucher müssen sich erneut verifizieren.",
+      "current_version": "Aktuelle Sitzungsversion",
+      "description": "Leg fest, wie lange eine verifizierte Freigabe-Sitzung gültig bleibt, und erzwinge bei Bedarf eine erneute Verifizierung.",
+      "error": "Freigabe-Sitzungseinstellungen konnten nicht aktualisiert werden.",
+      "invalidate_button": "Alle Sitzungen ungültig machen",
+      "refresh_button": "Aktualisieren",
+      "save_button": "Sitzungseinstellungen speichern",
+      "success": "Freigabe-Sitzungseinstellungen wurden aktualisiert.",
+      "timeout_label": "Sitzungs-Timeout (Tage)",
+      "title": "Freigabe-Sitzungseinstellungen"
+    },
     "selectTimezone": "Zeitzone wählen",
     "set_language_manually": "Sprache dauerhaft festlegen",
     "show_changelog_on_update": "Änderungsprotokoll nach Update",

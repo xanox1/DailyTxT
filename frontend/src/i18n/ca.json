@@ -371,6 +371,18 @@
     "save": "Desa",
     "security": "Seguretat",
     "security.change_password": "Canvia contrasenya",
+    "sharing_session": {
+      "confirm_invalidate": "Voleu invalidar totes les sessions compartides verificades actualment? Els visitants s'hauran de verificar de nou.",
+      "current_version": "Versió actual de la sessió",
+      "description": "Configura quant de temps es manté vàlida una sessió verificada de vista compartida i força una nova verificació quan calgui.",
+      "error": "No s'han pogut actualitzar els paràmetres de la sessió compartida.",
+      "invalidate_button": "Invalida totes les sessions",
+      "refresh_button": "Actualitza",
+      "save_button": "Desa els paràmetres de sessió",
+      "success": "S'han actualitzat els paràmetres de la sessió compartida.",
+      "timeout_label": "Temps d'espera de la sessió (dies)",
+      "title": "Paràmetres de sessió compartida"
+    },
     "selectTimezone": "Selecciona zona horària",
     "set_language_manually": "Estableix idioma permanentment",
     "show_changelog_on_update": "Registre de canvis després d'actualització",
