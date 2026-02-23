@@ -388,6 +388,12 @@
 		instance.hide();
 	}
 
+	function openSidenav() {
+		if (!offcanvasEl) return;
+		const instance = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+		instance.show();
+	}
+
 	function selectDateFromSearch(result) {
 		$selectedDate = {
 			year: result.year,
@@ -437,7 +443,7 @@
 			></button>
 		</div>
 		<div class="d-flex flex-column h-100">
-			<Datepicker {bookmarkDay} />
+			<Datepicker {bookmarkDay} showBookmarkButton={false} />
 			<div class="search d-flex flex-column glass-shadow mb-2">
 				<form
 					onsubmit={(event) => {
@@ -502,8 +508,8 @@
 					<button
 						class="btn ms-1"
 						type="button"
-						data-bs-toggle="offcanvas"
-						data-bs-target="#sidenav"
+						onclick={openSidenav}
+						disabled={!offcanvasEl}
 						aria-controls="sidenav"
 					><Fa icon={faBars} /></button>
 
@@ -529,7 +535,7 @@
 			{#if $alwaysShowSidenav}
 				<div class="sidenav p-3">
 				<div class="d-flex flex-column h-100">
-					<Datepicker {bookmarkDay} />
+					<Datepicker {bookmarkDay} showBookmarkButton={false} />
 					<div class="search d-flex flex-column glass-shadow mb-2">
 						<form
 							onsubmit={(event) => {

@@ -72,6 +72,32 @@
 			invalidateShareSessionCookies();
 		}
 	}
+
+	function groupedShareAccessLogs() {
+		if (!shareAccessLogs || shareAccessLogs.length === 0) {
+			return [];
+		}
+
+		const sortedLogs = [...shareAccessLogs].sort((a, b) => {
+			const timeA = new Date(a?.time || 0).getTime();
+			const timeB = new Date(b?.time || 0).getTime();
+			return timeB - timeA;
+		});
+
+		const grouped = new Map();
+		for (const log of sortedLogs) {
+			const email = (log.email || '').trim() || '-';
+			if (!grouped.has(email)) {
+				grouped.set(email, []);
+			}
+			grouped.get(email).push(log);
+		}
+
+		return Array.from(grouped.entries()).map(([email, items]) => ({
+			email,
+			items
+		}));
+	}
 </script>
 
 <h3 class="text-primary">🔗 Sharing</h3>
@@ -355,27 +381,64 @@
 	{:else if !shareAccessLogs || shareAccessLogs.length === 0}
 		<div class="form-text">No share access entries yet.</div>
 	{:else}
-		<div class="table-responsive">
-			<table class="table table-sm table-striped align-middle">
-				<thead>
-					<tr>
-						<th>Time</th>
-						<th>Email</th>
-						<th>IP</th>
-						<th>Event</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each shareAccessLogs as log}
-						<tr>
-							<td>{formatDate(log.time)}</td>
-							<td>{log.email || '-'}</td>
-							<td>{log.ip || '-'}</td>
-							<td>{log.event || '-'}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+		<div class="accordion" id="shareAccessLogAccordion">
+			{#each groupedShareAccessLogs() as group, index (group.email)}
+				<div class="accordion-item">
+					<h2 class="accordion-header" id={`shareAccessHeading-${index}`}>
+						<button
+							class="accordion-button {index === 0 ? '' : 'collapsed'}"
+							type="button"
+							data-bs-toggle="collapse"
+							data-bs-target={`#shareAccessCollapse-${index}`}
+							aria-expanded={index === 0}
+							aria-controls={`shareAccessCollapse-${index}`}
+						>
+							<span class="share-log-email me-2">{group.email}</span>
+							<span class="badge text-bg-secondary">{group.items.length}</span>
+						</button>
+					</h2>
+					<div
+						id={`shareAccessCollapse-${index}`}
+						class="accordion-collapse collapse {index === 0 ? 'show' : ''}"
+						aria-labelledby={`shareAccessHeading-${index}`}
+						data-bs-parent="#shareAccessLogAccordion"
+					>
+						<div class="accordion-body p-0">
+							<div class="table-responsive share-log-group-scroll">
+								<table class="table table-sm table-striped align-middle mb-0">
+									<thead>
+										<tr>
+											<th>Time</th>
+											<th>IP</th>
+											<th>Event</th>
+										</tr>
+									</thead>
+									<tbody>
+										{#each group.items as log}
+											<tr>
+												<td>{formatDate(log.time)}</td>
+												<td>{log.ip || '-'}</td>
+												<td>{log.event || '-'}</td>
+											</tr>
+										{/each}
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/each}
 		</div>
 	{/if}
 </div>
+
+<style>
+	.share-log-group-scroll {
+		max-height: 260px;
+		overflow-y: auto;
+	}
+
+	.share-log-email {
+		overflow-wrap: anywhere;
+	}
+</style>
