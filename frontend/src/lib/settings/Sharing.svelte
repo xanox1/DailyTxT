@@ -80,7 +80,7 @@
 
 		const getLogEmail = (log) => {
 			const rawEmail = log?.email ?? '';
-			return String(rawEmail).trim().toLowerCase();
+			return String(rawEmail).trim();
 		};
 
 		const sortedLogs = [...shareAccessLogs].sort((a, b) => {
@@ -106,15 +106,27 @@
 
 	function shareAccessLogStats() {
 		const total = shareAccessLogs?.length || 0;
-		const uniqueEmails = new Set(
-			(shareAccessLogs || [])
-				.map((log) => String(log?.email || '').trim().toLowerCase())
-				.filter((email) => email !== '')
+		const sortedByTime = [...(shareAccessLogs || [])].sort((a, b) => {
+			const timeA = new Date(a?.time || 0).getTime();
+			const timeB = new Date(b?.time || 0).getTime();
+			return timeB - timeA;
+		});
+		const uniqueEmails = Array.from(
+			new Set(
+				(shareAccessLogs || [])
+					.map((log) => String(log?.email || '').trim())
+					.filter((email) => email !== '')
+			)
 		);
+		const newest = sortedByTime[0]?.time || '';
+		const oldest = sortedByTime[sortedByTime.length - 1]?.time || '';
 
 		return {
 			total,
-			unique: uniqueEmails.size
+			unique: uniqueEmails.length,
+			emails: uniqueEmails,
+			newest,
+			oldest
 		};
 	}
 </script>
@@ -402,7 +414,10 @@
 	{:else}
 		{@const stats = shareAccessLogStats()}
 		<div class="form-text mb-2">
-			Debug: {stats.total} log entries, {stats.unique} unique email addresses.
+			Debug: {stats.total} log entries, {stats.unique} unique email addresses, range: {formatDate(stats.oldest)} → {formatDate(stats.newest)}.
+			{#if stats.unique > 0}
+				Emails: {stats.emails.join(', ')}.
+			{/if}
 		</div>
 		<div class="d-flex flex-column gap-2">
 			{#each groupedShareAccessLogs() as group, index (group.email)}
