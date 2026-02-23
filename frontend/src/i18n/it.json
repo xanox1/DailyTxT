@@ -33,7 +33,9 @@
   },
   "fileList": {
     "change_filename": "Rinomina file",
-    "delete_file": "Elimina file"
+    "delete_file": "Elimina file",
+    "insert_inline_image": "Inserisci immagine inline",
+    "insert_inline_image_help": "Inserisci questa immagine come markdown nella posizione corrente del cursore"
   },
   "files": {
     "decrypting": "Decrittazione...",
@@ -315,6 +317,8 @@
     "first_day_of_week.help_text": "Seleziona il giorno in cui dovrebbe iniziare la settimana (influenza la visualizzazione nel calendario). Le modifiche potrebbero essere visibili solo dopo aver ricaricato la pagina.",
     "images_description": "<ul>\n\t<li>\n\t\tQuando si carica un testo, le immagini caricate (se disponibili) possono essere caricate automaticamente. <em>Maggiore utilizzo dei dati!</em>\n\t</li>\n\t<li>In alternativa, viene visualizzato un pulsante per caricare tutte le immagini.</li>\n</ul>",
     "images_loading_default": "Carica automaticamente le immagini per impostazione predefinita (su ogni dispositivo)",
+    "images_insert_inline_auto": "Inserisci automaticamente in linea nell’editor le immagini caricate",
+    "images_insert_inline_help": "In modalità scrittura puoi sempre inserire manualmente un’immagine dal menu opzioni del file.",
     "images_loading_per_device": "Decidi per ogni dispositivo se le immagini devono essere caricate automaticamente",
     "images_loading_this_device": "Carica automaticamente le immagini su <b>questo dispositivo</b>",
     "images_title": "Carica automaticamente le immagini",

@@ -19,7 +19,7 @@
 <h3 class="text-primary">🛠️ {$t('settings.features')}</h3>
 
 <div id="autoLoadImages">
-	{#if $tempSettings.setAutoloadImagesPerDevice !== $settings.setAutoloadImagesPerDevice || $tempSettings.autoloadImagesByDefault !== $settings.autoloadImagesByDefault}
+	{#if $tempSettings.setAutoloadImagesPerDevice !== $settings.setAutoloadImagesPerDevice || $tempSettings.autoloadImagesByDefault !== $settings.autoloadImagesByDefault || $tempSettings.autoInsertUploadedImagesInline !== $settings.autoInsertUploadedImagesInline}
 		{@render unsavedChanges()}
 	{/if}
 
@@ -65,6 +65,22 @@
 		<label class="form-check-label" for="autoLoadImagesSwitch">
 			{$t('settings.images_loading_default')}
 		</label>
+	</div>
+
+	<div class="form-check form-switch mt-3">
+		<input
+			class="form-check-input"
+			bind:checked={$tempSettings.autoInsertUploadedImagesInline}
+			type="checkbox"
+			role="switch"
+			id="autoInsertUploadedImagesInlineSwitch"
+		/>
+		<label class="form-check-label" for="autoInsertUploadedImagesInlineSwitch">
+			{$t('settings.images_insert_inline_auto')}
+		</label>
+	</div>
+	<div class="form-text">
+		{$t('settings.images_insert_inline_help')}
 	</div>
 </div>
 

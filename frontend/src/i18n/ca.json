@@ -33,7 +33,9 @@
   },
   "fileList": {
     "change_filename": "Canvia el nom del fitxer",
-    "delete_file": "Elimina el fitxer"
+    "delete_file": "Elimina el fitxer",
+    "insert_inline_image": "Insereix la imatge en línia",
+    "insert_inline_image_help": "Insereix aquesta imatge com a markdown a la posició actual del cursor"
   },
   "files": {
     "decrypting": "Desxifrant...",
@@ -315,6 +317,8 @@
     "first_day_of_week.help_text": "Selecciona el dia d'inici de setmana (afecta el calendari). Els canvis poden requerir recàrrega.",
     "images_description": "<ul>\n\t<li>\n\t\tEn carregar un text, les imatges pujades (si n'hi ha) es poden carregar automàticament. <em>Més consum de dades!</em>\n\t</li>\n\t<li>Alternativament, es mostra un botó per carregar totes les imatges.</li>\n</ul>",
     "images_loading_default": "Carrega imatges automàticament per defecte (tots els dispositius)",
+    "images_insert_inline_auto": "Insereix automàticament en línia les imatges pujades a l'editor",
+    "images_insert_inline_help": "En mode escriptura, sempre pots inserir una imatge manualment des del menú d’opcions del fitxer.",
     "images_loading_per_device": "Decideix per cada dispositiu si carregar imatges automàticament",
     "images_loading_this_device": "Carrega imatges automàticament <b>en aquest dispositiu</b>",
     "images_title": "Carrega automàtica d'imatges",

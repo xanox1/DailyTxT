@@ -6,7 +6,8 @@
 		faEdit,
 		faSave,
 		faTimes,
-		faGripVertical
+		faGripVertical,
+		faImage
 	} from '@fortawesome/free-solid-svg-icons';
 	import { slide } from 'svelte/transition';
 	import { formatBytes } from './helpers.js';
@@ -14,7 +15,16 @@
 
 	const { t } = getTranslate();
 
-	let { files, downloadFile, askDeleteFile, editable, renameFile, reorderFiles } = $props();
+	let {
+		files,
+		downloadFile,
+		askDeleteFile,
+		editable,
+		renameFile,
+		reorderFiles,
+		insertInlineFile,
+		canInsertInline
+	} = $props();
 
 	let openOptionsMenu = $state(null); // UUID of file with open options menu
 	let editingFilename = $state(null); // UUID of file being renamed
@@ -85,6 +95,18 @@
 
 		draggedIndex = null;
 		dragOverIndex = null;
+	}
+
+	function showInlineInsertButton(file) {
+		if (!editable || !insertInlineFile) {
+			return false;
+		}
+
+		if (typeof canInsertInline === 'function') {
+			return canInsertInline(file.filename);
+		}
+
+		return true;
 	}
 </script>
 
@@ -227,6 +249,22 @@
 							{/if}
 						</div>
 						<hr style="color: black;" />
+						{#if showInlineInsertButton(file)}
+							<div class="mb-2">
+								<button
+									class="btn btn-sm btn-outline-primary w-100"
+									title={$t('fileList.insert_inline_image_help')}
+									aria-label={$t('fileList.insert_inline_image_help')}
+									onclick={() => {
+										insertInlineFile(file.uuid_filename);
+										openOptionsMenu = null;
+									}}
+								>
+									<Fa icon={faImage} fw class="me-2" />
+									{$t('fileList.insert_inline_image')}
+								</button>
+							</div>
+						{/if}
 						<div>
 							<button
 								class="btn btn-sm btn-danger w-100"

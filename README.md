@@ -34,7 +34,8 @@ Try the [live demo](https://dailytxt.phitux.de) 🚀
 ## Features
 
 - **Encryption**: Everything you write is encrypted before it's written to the server's storage. Even the admin can't read your private stuff!
-- **File-Upload**: You can upload arbitrary files for each day (500 MB max each). They are stored encrypted on the server as well. Images are automatically recognized and added to the...
+- **File-Upload**: You can upload arbitrary files for each day (500 MB max each). They are stored encrypted on the server as well.
+- **Inline Image Insertion**: Uploaded image files can be inserted directly into your markdown text (automatically via settings or manually from the file options menu in write mode).
 - **Image Viewer**: View all images of a day in a gallery view and in full screen.
 - **Markdown**: You can write your entries in markdown and see a live preview.
 - **Tags**: You can add tags to your entries for better organization.
@@ -57,6 +58,7 @@ Try the [live demo](https://dailytxt.phitux.de) 🚀
 - You can swipe left/right in the date-area above the editor to switch between days.
 - Use Alt + Left/Right (or Ctrl + Option + Left/Right on Mac) to switch between days.
 - Drag'n'drop files into DailyTxT to upload them.
+- In write mode, open the file options menu (wrench icon) of an uploaded image and choose “Insert inline image” to add it at the current cursor position.
 - The editor saves automatically. Green border means everything is saved, orange border means unsaved changes.
 - You can change the order of files (and images!) by dragging them (at the left side) in the file list.
 - A yellow dot in the calendar means, that there are uploaded files for this day.
@@ -196,6 +198,7 @@ The old version 1 is moved to the [v1 branch](https://github.com/PhiTux/DailyTxT
 - Shared read-only view now uses the same gradient-style background as the normal read view.
 - Hidden PWA install/update recommendation toasts in guest/share view.
 - Added and wired complete translation keys for the share view (including Dutch coverage for all share-view UI texts).
+- Added automatic and manual inline insertion for uploaded images in write mode (with user setting toggle).
 ```
 ---
 

@@ -432,9 +432,51 @@
 
 	const imageExtensions = ['jpeg', 'jpg', 'gif', 'png', 'webp', 'bmp'];
 
+	function isImageFile(filename) {
+		const ext = filename?.split('.').pop()?.toLowerCase();
+		return imageExtensions.includes(ext);
+	}
+
+	function insertInlineImageMarkup(filename, uuid) {
+		const safeAltText = (filename || 'image').replace(/[\[\]]/g, '');
+		const imageUrl = `${API_URL}/logs/downloadFile?uuid=${encodeURIComponent(uuid)}`;
+		const markdownImage = `![${safeAltText}](${imageUrl})`;
+
+		const editorElement = document.querySelector('.TinyMDE');
+		if (!editorElement) {
+			return;
+		}
+
+		editorElement.focus();
+
+		const selection = window.getSelection();
+		const hasSelectionInEditor =
+			selection &&
+			selection.rangeCount > 0 &&
+			editorElement.contains(selection.anchorNode) &&
+			editorElement.contains(selection.focusNode);
+
+		if (hasSelectionInEditor) {
+			document.execCommand('insertText', false, markdownImage);
+			editorElement.dispatchEvent(new Event('input', { bubbles: true }));
+			return;
+		}
+
+		const content = currentLog || '';
+		const separator = content.length > 0 && !content.endsWith('\n') ? '\n\n' : '';
+		const nextContent = `${content}${separator}${markdownImage}`;
+		tinyMDE.setContent(nextContent);
+		currentLog = nextContent;
+		handleInput();
+	}
+
 	let autoLoadImages = $derived(
 		($settings.setAutoloadImagesPerDevice && $autoLoadImagesThisDevice) ||
 			(!$settings.setAutoloadImagesPerDevice && $settings.autoloadImagesByDefault)
+	);
+
+	let autoInsertUploadedImagesInline = $derived(
+		$settings.autoInsertUploadedImagesInline !== false
 	);
 
 	$effect(() => {
@@ -748,7 +790,12 @@
 			})
 			.then(() => {
 				// append to filesOfDay
-				filesOfDay = [...filesOfDay, { filename: f.name, size: f.size, uuid_filename: uuid }];
+				const uploadedFile = { filename: f.name, size: f.size, uuid_filename: uuid };
+				filesOfDay = [...filesOfDay, uploadedFile];
+
+				if (isImageFile(uploadedFile.filename) && autoInsertUploadedImagesInline) {
+					insertInlineImageMarkup(uploadedFile.filename, uploadedFile.uuid_filename);
+				}
 
 				// add to calendar
 				if (!$cal.daysWithFiles.includes($selectedDate.day)) {
@@ -764,6 +811,15 @@
 			.finally(() => {
 				uploadingFiles = uploadingFiles.filter((file) => file.uuid !== uuid);
 			});
+	}
+
+	function insertInlineImageForFile(uuid) {
+		const file = filesOfDay.find((entry) => entry.uuid_filename === uuid);
+		if (!file || !isImageFile(file.filename)) {
+			return;
+		}
+
+		insertInlineImageMarkup(file.filename, file.uuid_filename);
 	}
 
 	function downloadFile(uuid) {
@@ -1778,6 +1834,8 @@
 						{askDeleteFile}
 						{renameFile}
 						{reorderFiles}
+						insertInlineFile={insertInlineImageForFile}
+						canInsertInline={isImageFile}
 						editable
 					/>
 				</div>

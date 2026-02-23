@@ -33,7 +33,9 @@
   },
   "fileList": {
     "change_filename": "重新命名檔案",
-    "delete_file": "刪除檔案"
+    "delete_file": "刪除檔案",
+    "insert_inline_image": "內嵌插入圖片",
+    "insert_inline_image_help": "在目前游標位置將此圖片以 Markdown 方式插入"
   },
   "files": {
     "decrypting": "正在解密...",
@@ -315,6 +317,8 @@
     "first_day_of_week.help_text": "選擇一週開始的日期（影響日曆中的顯示）。更改可能僅在重新載入頁面後可見。",
     "images_description": "<ul>\n\t<li>\n\t\t載入文字時，可以自動載入已上傳的圖片（如果有的話）。<em>資料用量增加！</em>\n\t</li>\n\t<li>或者，會顯示一個按鈕來載入所有圖片。</li>\n</ul>",
     "images_loading_default": "預設自動載入圖片（在每個裝置上）",
+    "images_insert_inline_auto": "自動在編輯器中內嵌插入已上傳的圖片",
+    "images_insert_inline_help": "在寫作模式中，你也可以隨時透過檔案選項選單手動內嵌插入圖片。",
     "images_loading_per_device": "為每個裝置決定是否應自動載入圖片",
     "images_loading_this_device": "在**此裝置**上自動載入圖片",
     "images_title": "自動載入圖片",

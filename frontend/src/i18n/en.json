@@ -33,7 +33,9 @@
   },
   "fileList": {
     "change_filename": "Rename file",
-    "delete_file": "Delete file"
+    "delete_file": "Delete file",
+    "insert_inline_image": "Insert inline image",
+    "insert_inline_image_help": "Insert this image as markdown at the current cursor position"
   },
   "files": {
     "decrypting": "Decrypting...",
@@ -342,6 +344,8 @@
     "first_day_of_week.help_text": "Select the day on which the week should start (affects the display in the calendar). Changes may only be visible after reloading the page.",
     "images_description": "<ul>\n\t<li>\n\t\tWhen loading a text, uploaded images (if available) can be loaded automatically. <em>Increased data usage!</em>\n\t</li>\n\t<li>Alternatively, a button is displayed to load all images.</li>\n</ul>",
     "images_loading_default": "Automatically load images by default (on every device)",
+    "images_insert_inline_auto": "Automatically insert uploaded images inline in the editor",
+    "images_insert_inline_help": "You can always insert an image manually from the file options menu in write mode.",
     "images_loading_per_device": "Decide for each device whether images should be loaded automatically",
     "images_loading_this_device": "Automatically load images on <b>this device</b>",
     "images_title": "Automatically load images",

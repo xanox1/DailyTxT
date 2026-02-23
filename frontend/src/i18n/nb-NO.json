@@ -33,7 +33,9 @@
   },
   "fileList": {
     "change_filename": "Gi nytt navn",
-    "delete_file": "Slett fil"
+    "delete_file": "Slett fil",
+    "insert_inline_image": "Sett inn bilde inline",
+    "insert_inline_image_help": "Sett inn dette bildet som markdown ved gjeldende markørposisjon"
   },
   "files": {
     "decrypting": "Dekrypterer...",
@@ -315,6 +317,8 @@
     "first_day_of_week.help_text": "Velg hvilken dag uken skal starte på (påvirker kalenderen). Endringen synes kanskje først etter at siden lastes på nytt.",
     "images_description": "<ul>\n\t<li>Bilder kan lastes automatisk ved visning av en tekst. <em>Økt databruk!</em></li>\n\t<li>Alternativt vises en knapp for å laste alle bilder.</li>\n</ul>",
     "images_loading_default": "Last bilder automatisk som standard (på alle enheter)",
+    "images_insert_inline_auto": "Sett inn opplastede bilder automatisk inline i editoren",
+    "images_insert_inline_help": "I skrivemodus kan du alltid sette inn et bilde manuelt fra filens valgmeny.",
     "images_loading_per_device": "Bestem per enhet om bilder skal lastes automatisk",
     "images_loading_this_device": "Last bilder automatisk på <b>denne enheten</b>",
     "images_title": "Automatisk lasting av bilder",

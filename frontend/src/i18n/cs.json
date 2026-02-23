@@ -33,7 +33,9 @@
   },
   "fileList": {
     "change_filename": "Přejmenovat soubor",
-    "delete_file": "Smazat soubor"
+    "delete_file": "Smazat soubor",
+    "insert_inline_image": "Vložit obrázek inline",
+    "insert_inline_image_help": "Vložit tento obrázek jako markdown na aktuální pozici kurzoru"
   },
   "files": {
     "decrypting": "Dešifrování...",
@@ -315,6 +317,8 @@
     "first_day_of_week.help_text": "Vyber den, kterým má týden začínat (ovlivňuje zobrazení v kalendáři). Změny mohou být viditelné až po obnovení stránky.",
     "images_description": "<ul>\n\t<li>\n\t\tPři načítání textu mohou být automaticky načteny nahrané obrázky (pokud jsou k dispozici). <em>Zvýšená spotřeba dat!</em>\n\t</li>\n\t<li>Alternativně se zobrazí tlačítko pro načtení všech obrázků.</li>\n</ul>",
     "images_loading_default": "Automaticky načítat obrázky ve výchozím nastavení (na každém zařízení)",
+    "images_insert_inline_auto": "Automaticky vkládat nahrané obrázky inline do editoru",
+    "images_insert_inline_help": "V režimu psaní můžeš obrázek vždy vložit ručně přes nabídku možností souboru.",
     "images_loading_per_device": "Rozhodnout pro každé zařízení, zda se mají obrázky načítat automaticky",
     "images_loading_this_device": "Automaticky načítat obrázky na <b>tomto zařízení</b>",
     "images_title": "Automaticky načítat obrázky",

@@ -54,11 +54,22 @@
 		}
 	}
 
-	function scrollToDay(day) {
+	function scrollToDay(day, behavior = 'auto') {
 		const el = document.querySelector(`.log[data-log-day="${day}"]`);
 		if (el) {
-			el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			el.scrollIntoView({ behavior, block: 'start' });
 		}
+	}
+
+	function scrollToTodayIfCurrentMonth(year, month) {
+		const today = new Date();
+		if (year !== today.getFullYear() || month !== today.getMonth()) {
+			return;
+		}
+
+		requestAnimationFrame(() => {
+			scrollToDay(today.getDate(), 'smooth');
+		});
 	}
 
 	// Re-load whenever month/year changes
@@ -114,6 +125,7 @@
 			})
 			.then((response) => {
 				logs = response.data.sort((a, b) => a.day - b.day);
+				scrollToTodayIfCurrentMonth(year, month);
 			})
 			.catch((error) => {
 				if (error.response?.status === 401) {
