@@ -78,6 +78,11 @@
 			return [];
 		}
 
+		const getLogEmail = (log) => {
+			const rawEmail = log?.email ?? '';
+			return String(rawEmail).trim().toLowerCase();
+		};
+
 		const sortedLogs = [...shareAccessLogs].sort((a, b) => {
 			const timeA = new Date(a?.time || 0).getTime();
 			const timeB = new Date(b?.time || 0).getTime();
@@ -86,7 +91,7 @@
 
 		const grouped = new Map();
 		for (const log of sortedLogs) {
-			const email = (log.email || '').trim() || '-';
+			const email = getLogEmail(log) || '-';
 			if (!grouped.has(email)) {
 				grouped.set(email, []);
 			}
@@ -97,6 +102,20 @@
 			email,
 			items
 		}));
+	}
+
+	function shareAccessLogStats() {
+		const total = shareAccessLogs?.length || 0;
+		const uniqueEmails = new Set(
+			(shareAccessLogs || [])
+				.map((log) => String(log?.email || '').trim().toLowerCase())
+				.filter((email) => email !== '')
+		);
+
+		return {
+			total,
+			unique: uniqueEmails.size
+		};
 	}
 </script>
 
@@ -381,6 +400,10 @@
 	{:else if !shareAccessLogs || shareAccessLogs.length === 0}
 		<div class="form-text">No share access entries yet.</div>
 	{:else}
+		{@const stats = shareAccessLogStats()}
+		<div class="form-text mb-2">
+			Debug: {stats.total} log entries, {stats.unique} unique email addresses.
+		</div>
 		<div class="d-flex flex-column gap-2">
 			{#each groupedShareAccessLogs() as group, index (group.email)}
 				<details class="share-log-group" open={index === 0}>
