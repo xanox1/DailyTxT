@@ -26,6 +26,7 @@ Try the [live demo](https://dailytxt.phitux.de) 🚀
 - [Installation](#installation)
 - [Migration Instructions](#migration-instructions)
 - [About encryption and data storage](#about-encryption-and-data-storage)
+- [Share API (quick reference)](#share-api-quick-reference)
 - [Changelog](#changelog)
 - [Start developing](#start-developing)
 
@@ -42,7 +43,7 @@ Try the [live demo](https://dailytxt.phitux.de) 🚀
 - **Search**: You can search for any word, tag or filename in your entries.
 - **Custom Templates**: You can create and use custom templates for your entries.
 - **Read Mode**: A distraction-free mode for reading your entries of each month.
-- **Share / Guest View**: Create read-only share links for your diary and optionally protect access with email verification (whitelist + code).
+- **Share / Guest View**: Create read-only share links for your diary and optionally protect access with email verification (whitelist + code), including a clean side calendar + search navigation similar to normal read mode.
 - **Multi-Language**: DailyTxT is currently available in <ins>**🇺🇸 English, 🇩🇪 German, 🇫🇷 French, 🇨🇿 Czech, 🇳🇴 Norwegian, 🇨🇳 Simplified Chinese, 🇹🇼 Traditional-Chinese (Taiwan), 🇮🇹 Italian, 🇳🇱 Dutch, 🇦🇩 Catalan**</ins>. New languages can be added easily, see [TRANSLATION.md](TRANSLATION.md) for instructions.
 - **Export to HTML**: You can export your entries (including uploaded files) to HTML format.
 - **Mobile**: Responsive design for easy use on mobile screen. Additionally: allows installation as a PWA (Progressive Web App) to your Homescreen.
@@ -63,6 +64,7 @@ Try the [live demo](https://dailytxt.phitux.de) 🚀
 - You can change the order of files (and images!) by dragging them (at the left side) in the file list.
 - A yellow dot in the calendar means, that there are uploaded files for this day.
 - The orange button in the calendar can highlight the current day.
+- In shared read-only mode, use the side menu calendar and search to jump quickly across months/entries.
 - You can hide spoilers in markdown using:
   ```md
   :::spoiler
@@ -121,7 +123,8 @@ services:
       # Optional: Protect shared links with email verification.
       # Email whitelist is managed per user in Settings -> Sharing.
       # SMTP can also be managed per user in Settings -> Sharing.
-      # The SMTP values below act as global defaults/fallback.
+      # The warning state in Settings -> Sharing is based on the saved user SMTP settings.
+      # The SMTP values below still act as global defaults/fallback for sending.
       # Verification code validity in minutes (default: 10):
       # - SHARE_CODE_TTL_MINUTES=10
       # Verification cookie validity in days (default: 30):
@@ -174,6 +177,22 @@ There are also backup-keys available which can be used as a password-replacement
 
 All data is stored in json-files. No database is used, because the main goal is to guarantee highest portability and longterm availability of the data.
 
+## Share API (quick reference)
+
+Public share endpoints (validated by `token` query parameter):
+
+- `GET /api/share/verificationStatus`
+- `POST /api/share/requestVerificationCode`
+- `POST /api/share/verifyCode`
+- `GET /api/share/getMarkedDays`
+- `GET /api/share/loadMonthForReading`
+- `GET /api/share/searchString` (searches shared entries across all months/years)
+- `GET /api/share/downloadFile`
+
+Notes:
+- If share verification is enabled for a user, these endpoints require a valid share verification cookie.
+- The `token` must be passed as a query parameter (for example: `/api/share/loadMonthForReading?token=...&year=2026&month=2`).
+
 ## Changelog
 
 > [!WARNING]
@@ -190,7 +209,7 @@ Additionally there are tags like A.B.C-testing.1 (...testing.2 etc.) for **non-s
 The old version 1 is moved to the [v1 branch](https://github.com/PhiTux/DailyTxT/tree/v1).
 
 ---
-#### 2.4.3 (2026-02-xx) (NOT YET RELEASED)
+#### 2.4.3 (2026-02-23) (NOT YET RELEASED)
 ```
 - Updated dependencies for security reasons
 - Integrated emojis into the frontend instead of loading them from a CDN.
@@ -199,6 +218,10 @@ The old version 1 is moved to the [v1 branch](https://github.com/PhiTux/DailyTxT
 - Hidden PWA install/update recommendation toasts in guest/share view.
 - Added and wired complete translation keys for the share view (including Dutch coverage for all share-view UI texts).
 - Added automatic and manual inline insertion for uploaded images in write mode (with user setting toggle).
+- Fixed inline image/file links in shared markdown to use secure share download URLs.
+- Improved shared read-only navigation with the cleaner calendar + side search menu.
+- Added shared search across all months/years via a dedicated share endpoint.
+- SMTP warning in sharing settings now validates saved UI SMTP settings instead of ENV defaults.
 ```
 ---
 
@@ -298,7 +321,8 @@ You need [Go](https://golang.org/) (at least version 1.24) and [Node.js](https:/
     - Optional share verification env vars:
       - `SHARE_CODE_TTL_MINUTES=10`
       - `SHARE_COOKIE_DAYS=30`
-      - SMTP can be configured in the app UI (Settings -> Sharing), or via global fallback env vars:
+      - SMTP can be configured in the app UI (Settings -> Sharing), or via global fallback env vars for sending:
+      - The warning state in Settings -> Sharing is based on the saved user SMTP settings.
       - `SMTP_HOST=smtp.example.com`
       - `SMTP_PORT=587`
       - `SMTP_USERNAME=mailer@example.com`

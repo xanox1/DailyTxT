@@ -141,6 +141,7 @@ func main() {
 	api.HandleFunc("POST /share/verifyCode", handlers.VerifyShareVerificationCode)
 	api.HandleFunc("GET /share/getMarkedDays", handlers.SharedGetMarkedDays)
 	api.HandleFunc("GET /share/loadMonthForReading", handlers.SharedLoadMonthForReading)
+	api.HandleFunc("GET /share/searchString", handlers.SharedSearch)
 	api.HandleFunc("GET /share/downloadFile", handlers.SharedDownloadFile)
 
 	// Admin routes

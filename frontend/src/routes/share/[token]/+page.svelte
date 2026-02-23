@@ -3,8 +3,12 @@
 	import axios from 'axios';
 	import { parseMarkdown, spoilerRevealAction } from '$lib/markdown.js';
 	import ImageViewer from '$lib/ImageViewer.svelte';
+	import Datepicker from '$lib/Datepicker.svelte';
+	import { cal, selectedDate } from '$lib/calendarStore.js';
+	import { alwaysShowSidenav, sameDate } from '$lib/helpers.js';
+	import * as bootstrap from 'bootstrap';
 	import { page } from '$app/state';
-	import { untrack } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { getTranslate, getTolgee } from '@tolgee/svelte';
 
 	const { t } = getTranslate();
@@ -12,11 +16,11 @@
 
 	let token = $derived(page.params.token);
 
-	// Calendar state
-	let currentYear = $state(new Date().getFullYear());
-	let currentMonth = $state(new Date().getMonth()); // 0-indexed
-
 	let logs = $state([]);
+	let searchQuery = $state('');
+	let sharedSearchResults = $state([]);
+	let offcanvasEl = $state(null);
+	let isSearchingShared = $state(false);
 	let isLoadingMonthForReading = $state(false);
 	let isInvalidToken = $state(false);
 	let isVerificationRequired = $state(false);
@@ -28,75 +32,6 @@
 	let verificationError = $state('');
 	let verificationSuccess = $state('');
 	let codeSent = $state(false);
-	let jumpDate = $state(new Date().toISOString().slice(0, 10));
-	let pendingJumpDay = $state(null);
-	let pendingJumpYear = $state(null);
-	let pendingJumpMonth = $state(null);
-
-	function parseDateInputValue(value) {
-		if (!value) {
-			return null;
-		}
-
-		const [yearRaw, monthRaw, dayRaw] = value.split('-');
-		const year = Number(yearRaw);
-		const month = Number(monthRaw);
-		const day = Number(dayRaw);
-
-		if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
-			return null;
-		}
-
-		if (month < 1 || month > 12 || day < 1 || day > 31) {
-			return null;
-		}
-
-		return { year, month: month - 1, day };
-	}
-
-	function jumpToDate() {
-		const parsedDate = parseDateInputValue(jumpDate);
-		if (!parsedDate) {
-			return;
-		}
-
-		pendingJumpDay = parsedDate.day;
-		pendingJumpYear = parsedDate.year;
-		pendingJumpMonth = parsedDate.month;
-
-		const monthChanged = currentYear !== parsedDate.year || currentMonth !== parsedDate.month;
-		currentYear = parsedDate.year;
-		currentMonth = parsedDate.month;
-
-		if (!monthChanged) {
-			loadMonthForSharedReading(parsedDate.year, parsedDate.month);
-		}
-	}
-
-	function getMonthLabel(year, monthIndex) {
-		return new Date(year, monthIndex, 1).toLocaleDateString($tolgee.getLanguage(), {
-			month: 'long',
-			year: 'numeric'
-		});
-	}
-
-	function prevMonth() {
-		if (currentMonth === 0) {
-			currentMonth = 11;
-			currentYear -= 1;
-		} else {
-			currentMonth -= 1;
-		}
-	}
-
-	function nextMonth() {
-		if (currentMonth === 11) {
-			currentMonth = 0;
-			currentYear += 1;
-		} else {
-			currentMonth += 1;
-		}
-	}
 
 	function scrollToDay(day, behavior = 'auto') {
 		const el = document.querySelector(`.log[data-log-day="${day}"]`);
@@ -119,13 +54,25 @@
 	// Re-load whenever month/year changes
 	$effect(() => {
 		// track both reactive values
-		const _year = currentYear;
-		const _month = currentMonth;
+		const _year = $cal.currentYear;
+		const _month = $cal.currentMonth;
 		const _token = token;
 		if (_token) {
 			untrack(() => {
 				loadMonthForSharedReading(_year, _month);
 			});
+		}
+	});
+
+	$effect(() => {
+		if ($selectedDate) {
+			$cal.currentYear = $selectedDate.year;
+			$cal.currentMonth = $selectedDate.month - 1;
+
+			const el = document.querySelector(`.log[data-log-day="${$selectedDate.day}"]`);
+			if (el) {
+				el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
 		}
 	});
 
@@ -162,6 +109,8 @@
 		if (isLoadingMonthForReading) return;
 		isLoadingMonthForReading = true;
 		logs = [];
+		$cal.daysWithLogs = [];
+		$cal.daysWithFiles = [];
 
 		axios
 			.get(API_URL + '/share/loadMonthForReading', {
@@ -169,18 +118,16 @@
 			})
 			.then((response) => {
 				logs = response.data.sort((a, b) => a.day - b.day);
+				$cal.daysWithLogs = logs.map((log) => log.day);
+				$cal.daysWithFiles = logs.filter((log) => (log.files?.length || 0) > 0).map((log) => log.day);
 
-				if (
-					pendingJumpDay !== null &&
-					pendingJumpYear === year &&
-					pendingJumpMonth === month
-				) {
+				const selectedMatchesMonth =
+					$selectedDate && $selectedDate.year === year && $selectedDate.month === month + 1;
+
+				if (selectedMatchesMonth) {
 					requestAnimationFrame(() => {
-						scrollToDay(pendingJumpDay, 'smooth');
+						scrollToDay($selectedDate.day, 'smooth');
 					});
-					pendingJumpDay = null;
-					pendingJumpYear = null;
-					pendingJumpMonth = null;
 				} else {
 					scrollToTodayIfCurrentMonth(year, month);
 				}
@@ -248,7 +195,7 @@
 			isShareVerified = true;
 			verificationCode = '';
 			verificationSuccess = $t('shareView.verification.success_verified');
-			await loadMonthForSharedReading(currentYear, currentMonth);
+			await loadMonthForSharedReading($cal.currentYear, $cal.currentMonth);
 		} catch (error) {
 			if (error.response?.status === 403) {
 				verificationError = $t('shareView.verification.error_code_invalid');
@@ -346,6 +293,63 @@
 	function getNonImageEntries(files = []) {
 		return files.filter((file) => !isImage(file.filename));
 	}
+
+	function bookmarkDay() {}
+
+	async function performSharedSearch() {
+		const query = searchQuery.trim();
+		if (!query) {
+			sharedSearchResults = [];
+			return;
+		}
+
+		isSearchingShared = true;
+		try {
+			const response = await axios.get(API_URL + '/share/searchString', {
+				params: {
+					token,
+					searchString: query
+				}
+			});
+
+			sharedSearchResults = (response.data || []).map((result) => ({
+				year: Number(result.year),
+				month: Number(result.month),
+				day: Number(result.day),
+				text: result.text || ''
+			}));
+		} catch (error) {
+			if (error.response?.status === 401) {
+				isInvalidToken = true;
+			} else if (error.response?.status === 403) {
+				isVerificationRequired = true;
+				isShareVerified = false;
+			}
+			console.error(error);
+			sharedSearchResults = [];
+		} finally {
+			isSearchingShared = false;
+		}
+	}
+
+	function closeOffcanvasIfOpen() {
+		if (!offcanvasEl) return;
+		const instance = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+		instance.hide();
+	}
+
+	function selectDateFromSearch(result) {
+		$selectedDate = {
+			year: result.year,
+			month: result.month,
+			day: result.day
+		};
+		closeOffcanvasIfOpen();
+	}
+
+	onMount(() => {
+		offcanvasEl = document.getElementById('sharedSidenav');
+	});
 </script>
 
 <svelte:head>
@@ -360,35 +364,137 @@
 		</div>
 	</div>
 {:else}
-	<div class="layout-read d-flex flex-column container-xxl">
-		<div class="d-flex justify-content-between align-items-center mt-3 mb-2 px-2">
-			<div class="d-flex align-items-center gap-2">
-				<span class="fw-semibold">📖 DailyTxT</span>
-				<span class="badge bg-secondary">{$t('shareView.badge_read_only')}</span>
-			</div>
-			<div class="d-flex align-items-center gap-2 nav-actions">
-				<div class="dropdown">
-					<button
-						class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-						type="button"
-						data-bs-toggle="dropdown"
-						aria-expanded="false"
-					>
-						📅 <span>{$t('shareView.jumpToDate.title')}</span>
+	<div class="offcanvas offcanvas-start p-3" id="sharedSidenav" tabindex="-1">
+		<div class="offcanvas-header">
+			<button
+				type="button"
+				class="btn-close"
+				data-bs-dismiss="offcanvas"
+				data-bs-target="#sharedSidenav"
+				aria-label="Close"
+			></button>
+		</div>
+		<div class="d-flex flex-column h-100">
+			<Datepicker {bookmarkDay} />
+			<br />
+			<div class="search d-flex flex-column glass-shadow mb-2">
+				<form
+					onsubmit={(event) => {
+						event.preventDefault();
+						performSharedSearch();
+					}}
+					class="input-group"
+				>
+					<input
+						bind:value={searchQuery}
+						type="text"
+						class="form-control"
+						placeholder={$t('search.search')}
+						aria-label={$t('search.search')}
+					/>
+					<button class="btn btn-outline-secondary glass" type="submit" id="search-button" disabled={isSearchingShared}>
+						{#if isSearchingShared}
+							<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+						{:else}
+							{$t('search.search')}
+						{/if}
 					</button>
-					<div class="dropdown-menu dropdown-menu-end p-3 jump-calendar-menu">
-						<label class="form-label mb-2" for="jumpDateInput">{$t('shareView.jumpToDate.label')}</label>
-						<input id="jumpDateInput" class="form-control form-control-sm mb-2" type="date" bind:value={jumpDate} />
-						<button class="btn btn-sm btn-primary w-100" onclick={jumpToDate}>
-							{$t('shareView.jumpToDate.button')}
-						</button>
-					</div>
+				</form>
+				<div class="list-group flex-grow-1 glass">
+					{#if sharedSearchResults.length > 0}
+						{#each sharedSearchResults as result}
+							<button
+								type="button"
+								onclick={() => selectDateFromSearch(result)}
+								class="list-group-item list-group-item-action {sameDate($selectedDate, {
+									year: result.year,
+									month: result.month,
+									day: result.day
+								})
+									? 'active'
+									: ''}"
+							>
+								<div class="search-result-content">
+									<div class="date">
+										{new Date(result.year, result.month - 1, result.day).toLocaleDateString(
+											$tolgee.getLanguage(),
+											{ day: '2-digit', month: '2-digit', year: 'numeric' }
+										)}
+									</div>
+									<div class="text">{@html result.text}</div>
+								</div>
+							</button>
+						{/each}
+					{:else}
+						<span class="noResult">{$t('search.no_results')}</span>
+					{/if}
 				</div>
-				<button class="btn btn-sm btn-outline-secondary" onclick={prevMonth}>‹</button>
-				<span class="fw-semibold">{getMonthLabel(currentYear, currentMonth)}</span>
-				<button class="btn btn-sm btn-outline-secondary" onclick={nextMonth}>›</button>
 			</div>
 		</div>
+	</div>
+
+	<div class="layout-read d-flex flex-row justify-content-between container-xxl">
+		{#if $alwaysShowSidenav}
+			<div class="sidenav p-3">
+				<div class="d-flex flex-column h-100">
+					<Datepicker {bookmarkDay} />
+					<br />
+					<div class="search d-flex flex-column glass-shadow mb-2">
+						<form
+							onsubmit={(event) => {
+								event.preventDefault();
+								performSharedSearch();
+							}}
+							class="input-group"
+						>
+							<input
+								bind:value={searchQuery}
+								type="text"
+								class="form-control"
+								placeholder={$t('search.search')}
+								aria-label={$t('search.search')}
+							/>
+							<button class="btn btn-outline-secondary glass" type="submit" id="search-button-desktop" disabled={isSearchingShared}>
+								{#if isSearchingShared}
+									<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+								{:else}
+									{$t('search.search')}
+								{/if}
+							</button>
+						</form>
+						<div class="list-group flex-grow-1 glass">
+							{#if sharedSearchResults.length > 0}
+								{#each sharedSearchResults as result}
+									<button
+										type="button"
+										onclick={() => selectDateFromSearch(result)}
+										class="list-group-item list-group-item-action {sameDate($selectedDate, {
+											year: result.year,
+											month: result.month,
+											day: result.day
+										})
+											? 'active'
+											: ''}"
+									>
+										<div class="search-result-content">
+											<div class="date">
+												{new Date(result.year, result.month - 1, result.day).toLocaleDateString(
+													$tolgee.getLanguage(),
+													{ day: '2-digit', month: '2-digit', year: 'numeric' }
+												)}
+											</div>
+											<div class="text">{@html result.text}</div>
+										</div>
+									</button>
+								{/each}
+							{:else}
+								<span class="noResult">{$t('search.no_results')}</span>
+							{/if}
+						</div>
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		{#if isVerificationRequired && !isShareVerified}
 			<div class="d-flex align-items-center justify-content-center h-100 p-3">
@@ -443,7 +549,24 @@
 				</div>
 			</div>
 		{:else}
-			<div class="d-flex flex-column my-2 flex-fill overflow-y-auto" id="scrollArea">
+			<div class="d-flex flex-column my-4 flex-fill overflow-y-auto" id="scrollArea">
+				<div class="d-flex justify-content-between align-items-center mb-3 px-2">
+					<div class="d-flex align-items-center gap-2">
+						{#if !$alwaysShowSidenav}
+							<button
+								type="button"
+								class="btn btn-secondary"
+								data-bs-toggle="offcanvas"
+								data-bs-target="#sharedSidenav"
+							>
+								☰
+							</button>
+						{/if}
+						<span class="fw-semibold">📖 DailyTxT</span>
+						<span class="badge bg-secondary">{$t('shareView.badge_read_only')}</span>
+					</div>
+				</div>
+
 				{#if isLoadingMonthForReading}
 					<div class="d-flex align-items-center justify-content-center h-100">
 						<div class="glass p-5 rounded-5 no-entries">
@@ -466,11 +589,11 @@
 									<p class="dateNumber">{log.day}</p>
 									<p class="dateDay">
 										<b>
-											{new Date(currentYear, currentMonth, log.day).toLocaleDateString($tolgee.getLanguage(), { weekday: 'long' })}
+											{new Date($cal.currentYear, $cal.currentMonth, log.day).toLocaleDateString($tolgee.getLanguage(), { weekday: 'long' })}
 										</b>
 									</p>
 									<p class="dateMonthYear">
-										<i>{new Date(currentYear, currentMonth, log.day).toLocaleDateString($tolgee.getLanguage(), { year: 'numeric', month: 'long' })}</i>
+										<i>{new Date($cal.currentYear, $cal.currentMonth, log.day).toLocaleDateString($tolgee.getLanguage(), { year: 'numeric', month: 'long' })}</i>
 									</p>
 								</div>
 								<div class="logContent flex-grow-1">
@@ -539,14 +662,70 @@
 		max-width: 100%;
 	}
 
-	.nav-actions {
-		flex-wrap: wrap;
+	.sidenav {
+		min-width: 385px;
+		height: 100%;
 	}
 
-	.jump-calendar-menu {
-		min-width: 260px;
-		border-radius: 0.8rem;
-		backdrop-filter: blur(6px);
+	#sharedSidenav {
+		width: 385px;
+		backdrop-filter: blur(8px);
+	}
+
+	.list-group-item-action {
+		color: inherit !important;
+	}
+
+	.search {
+		flex: 1 1 auto;
+		display: flex;
+		flex-direction: column;
+		border-radius: 10px;
+		min-height: 0;
+	}
+
+	.list-group {
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		overflow-y: auto;
+		min-height: 250px;
+		flex: 1 1 auto;
+		max-height: none;
+	}
+
+	.noResult {
+		font-size: 25pt;
+		font-weight: 750;
+		text-align: center;
+		padding-left: 0.5rem;
+		padding-right: 0.5rem;
+		margin-left: auto;
+		margin-right: auto;
+		margin-top: 2rem;
+		user-select: none;
+		border-radius: 10px;
+	}
+
+	:global(body[data-bs-theme='dark']) .noResult {
+		color: #757575;
+	}
+
+	:global(body[data-bs-theme='light']) .noResult {
+		color: #9b9b9b;
+		background-color: #b8b8b879;
+	}
+
+	.search-result-content {
+		display: flex;
+		align-items: center;
+	}
+
+	#search-button,
+	#search-button-desktop {
+		border-bottom-right-radius: 10px;
+		border-top-right-radius: 10px;
 	}
 
 	.verification-box {
@@ -674,6 +853,12 @@
 		}
 	}
 
+	@media (max-width: 1599px) {
+		.sidenav {
+			display: none;
+		}
+	}
+
 	@media (max-width: 768px) {
 		.date {
 			min-width: 50px;
@@ -708,6 +893,10 @@
 		.layout-read {
 			padding-right: 0 !important;
 			padding-left: 0 !important;
+		}
+
+		#sharedSidenav {
+			width: 95vw;
 		}
 	}
 

@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
+	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -147,9 +151,15 @@ func GetShareVerificationSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userSMTPSettings, err := utils.GetShareSMTPSettings(userID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error retrieving share verification settings: %v", err), http.StatusInternalServerError)
+		return
+	}
+
 	utils.JSONResponse(w, http.StatusOK, map[string]any{
 		"emails":          emails,
-		"smtp_configured": utils.IsShareVerificationEnabled(),
+		"smtp_configured": utils.IsShareSMTPSettingsConfigured(userSMTPSettings),
 	})
 }
 
@@ -855,6 +865,215 @@ func SharedLoadMonthForReading(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.JSONResponse(w, http.StatusOK, result)
+
+	if required {
+		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash, userID), getClientIP(r), "access", r.URL.Path)
+	}
+}
+
+// SharedSearch searches across all shared logs for a given search string.
+func SharedSearch(w http.ResponseWriter, r *http.Request) {
+	userID, derivedKey, tokenHash, err := validateShareToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	required, err := utils.IsShareVerificationEnabledForUser(userID)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if required && !hasValidShareVerificationCookie(r, tokenHash, userID) {
+		http.Error(w, "Verification required", http.StatusForbidden)
+		return
+	}
+
+	searchString := r.URL.Query().Get("searchString")
+	if strings.TrimSpace(searchString) == "" {
+		http.Error(w, "Missing search parameter", http.StatusBadRequest)
+		return
+	}
+
+	encKey, err := utils.GetEncryptionKey(userID, derivedKey)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error getting encryption key: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	userDir := filepath.Join(utils.Settings.DataPath, strconv.Itoa(userID))
+	results := []any{}
+
+	yearEntries, err := os.ReadDir(userDir)
+	if err != nil {
+		utils.JSONResponse(w, http.StatusOK, results)
+		return
+	}
+
+	yearRegex := regexp.MustCompile(`^\d{4}$`)
+	monthRegex := regexp.MustCompile(`^(\d{2})\.json$`)
+
+	for _, yearEntry := range yearEntries {
+		if !yearEntry.IsDir() || !yearRegex.MatchString(yearEntry.Name()) {
+			continue
+		}
+		year := yearEntry.Name()
+		yearDir := filepath.Join(userDir, year)
+		monthEntries, err := os.ReadDir(yearDir)
+		if err != nil {
+			continue
+		}
+
+		for _, monthEntry := range monthEntries {
+			if monthEntry.IsDir() {
+				continue
+			}
+
+			matches := monthRegex.FindStringSubmatch(monthEntry.Name())
+			if len(matches) != 2 {
+				continue
+			}
+
+			month := matches[1]
+			monthInt, _ := strconv.Atoi(month)
+			yearInt, _ := strconv.Atoi(year)
+			content, err := utils.GetMonth(userID, yearInt, monthInt)
+			if err != nil {
+				continue
+			}
+
+			days, ok := content["days"].([]any)
+			if !ok {
+				continue
+			}
+
+			for _, dayInterface := range days {
+				dayLog, ok := dayInterface.(map[string]any)
+				if !ok {
+					continue
+				}
+
+				dayNum, ok := dayLog["day"].(float64)
+				if !ok {
+					continue
+				}
+				day := int(dayNum)
+
+				if text, ok := dayLog["text"].(string); ok {
+					decryptedText, err := utils.DecryptText(text, encKey)
+					if err == nil {
+						if strings.HasPrefix(searchString, "\"") && strings.HasSuffix(searchString, "\"") {
+							searchTerm := searchString[1 : len(searchString)-1]
+							if strings.Contains(decryptedText, searchTerm) {
+								context := getContext(decryptedText, searchTerm, true)
+								results = append(results, map[string]any{
+									"year":  year,
+									"month": month,
+									"day":   day,
+									"text":  context,
+								})
+							}
+						} else if strings.Contains(searchString, "|") {
+							words := strings.SplitSeq(searchString, "|")
+							for word := range words {
+								wordTrimmed := strings.TrimSpace(word)
+								if strings.Contains(strings.ToLower(decryptedText), strings.ToLower(wordTrimmed)) {
+									context := getContext(decryptedText, wordTrimmed, false)
+									results = append(results, map[string]any{
+										"year":  year,
+										"month": month,
+										"day":   day,
+										"text":  context,
+									})
+									break
+								}
+							}
+						} else if strings.Contains(searchString, " ") {
+							words := strings.Split(searchString, " ")
+							allWordsMatch := true
+							for _, word := range words {
+								wordTrimmed := strings.TrimSpace(word)
+								if !strings.Contains(strings.ToLower(decryptedText), strings.ToLower(wordTrimmed)) {
+									allWordsMatch = false
+									break
+								}
+							}
+							if allWordsMatch {
+								context := getContext(decryptedText, strings.TrimSpace(words[0]), false)
+								results = append(results, map[string]any{
+									"year":  year,
+									"month": month,
+									"day":   day,
+									"text":  context,
+								})
+							}
+						} else {
+							if strings.Contains(strings.ToLower(decryptedText), strings.ToLower(searchString)) {
+								context := getContext(decryptedText, searchString, false)
+								results = append(results, map[string]any{
+									"year":  year,
+									"month": month,
+									"day":   day,
+									"text":  context,
+								})
+							}
+						}
+					}
+				}
+
+				if files, ok := dayLog["files"].([]any); ok {
+					for _, fileInterface := range files {
+						file, ok := fileInterface.(map[string]any)
+						if !ok {
+							continue
+						}
+
+						if encFilename, ok := file["enc_filename"].(string); ok {
+							decryptedFilename, err := utils.DecryptText(encFilename, encKey)
+							if err != nil {
+								continue
+							}
+
+							if strings.Contains(strings.ToLower(decryptedFilename), strings.ToLower(searchString)) {
+								context := "📎 " + decryptedFilename
+								results = append(results, map[string]any{
+									"year":  year,
+									"month": month,
+									"day":   day,
+									"text":  context,
+								})
+								break
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		ri := results[i].(map[string]any)
+		rj := results[j].(map[string]any)
+
+		yearI, _ := strconv.Atoi(ri["year"].(string))
+		yearJ, _ := strconv.Atoi(rj["year"].(string))
+		if yearI != yearJ {
+			return yearI < yearJ
+		}
+
+		monthI, _ := strconv.Atoi(ri["month"].(string))
+		monthJ, _ := strconv.Atoi(rj["month"].(string))
+		if monthI != monthJ {
+			return monthI < monthJ
+		}
+
+		dayI := ri["day"].(int)
+		dayJ := rj["day"].(int)
+		return dayI < dayJ
+	})
+
+	utils.JSONResponse(w, http.StatusOK, results)
 
 	if required {
 		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash, userID), getClientIP(r), "access", r.URL.Path)

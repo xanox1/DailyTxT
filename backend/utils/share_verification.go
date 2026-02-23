@@ -229,11 +229,6 @@ func GetShareSessionCookieVersionForUserOrDefault(userID int) int64 {
 	return settings.CookieVersion
 }
 
-func IsShareVerificationEnabled() bool {
-	return Settings.SMTPHost != "" &&
-		Settings.SMTPFrom != ""
-}
-
 func IsShareSMTPSettingsConfigured(settings ShareSMTPSettings) bool {
 	return strings.TrimSpace(settings.Host) != "" && strings.TrimSpace(settings.From) != ""
 }
