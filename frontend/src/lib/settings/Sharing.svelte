@@ -80,7 +80,7 @@
 
 		const getLogEmail = (log) => {
 			const rawEmail = log?.email ?? '';
-			return String(rawEmail).trim();
+			return String(rawEmail).trim().toLowerCase();
 		};
 
 		const sortedLogs = [...shareAccessLogs].sort((a, b) => {
@@ -114,7 +114,7 @@
 		const uniqueEmails = Array.from(
 			new Set(
 				(shareAccessLogs || [])
-					.map((log) => String(log?.email || '').trim())
+					.map((log) => String(log?.email || '').trim().toLowerCase())
 					.filter((email) => email !== '')
 			)
 		);
