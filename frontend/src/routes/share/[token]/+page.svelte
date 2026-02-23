@@ -3,6 +3,9 @@
 	import axios from 'axios';
 	import { parseMarkdown, spoilerRevealAction } from '$lib/markdown.js';
 	import ImageViewer from '$lib/ImageViewer.svelte';
+	import { faBars } from '@fortawesome/free-solid-svg-icons';
+	import { Fa } from 'svelte-fa';
+	import dailytxt from '$lib/assets/locked_heart_with_keyhole.svg';
 	import Datepicker from '$lib/Datepicker.svelte';
 	import { cal, selectedDate } from '$lib/calendarStore.js';
 	import { alwaysShowSidenav, sameDate } from '$lib/helpers.js';
@@ -98,7 +101,29 @@
 			return;
 		}
 
+		loadSharedMarkedDays(year, month);
 		loadMonthForReading(year, month);
+	}
+
+	function loadSharedMarkedDays(year, month) {
+		axios
+			.get(API_URL + '/share/getMarkedDays', {
+				params: { token, year, month: month + 1 }
+			})
+			.then((response) => {
+				$cal.daysWithLogs = response.data.days_with_logs || [];
+				$cal.daysWithFiles = response.data.days_with_files || [];
+				$cal.daysBookmarked = response.data.days_bookmarked || [];
+			})
+			.catch((error) => {
+				if (error.response?.status === 401) {
+					isInvalidToken = true;
+				} else if (error.response?.status === 403) {
+					isVerificationRequired = true;
+					isShareVerified = false;
+				}
+				console.error(error);
+			});
 	}
 
 	async function checkVerificationStatus() {
@@ -125,8 +150,6 @@
 		if (isLoadingMonthForReading) return;
 		isLoadingMonthForReading = true;
 		logs = [];
-		$cal.daysWithLogs = [];
-		$cal.daysWithFiles = [];
 
 		axios
 			.get(API_URL + '/share/loadMonthForReading', {
@@ -134,8 +157,6 @@
 			})
 			.then((response) => {
 				logs = response.data.sort((a, b) => a.day - b.day);
-				$cal.daysWithLogs = logs.map((log) => log.day);
-				$cal.daysWithFiles = logs.filter((log) => (log.files?.length || 0) > 0).map((log) => log.day);
 
 				const selectedMatchesMonth =
 					$selectedDate && $selectedDate.year === year && $selectedDate.month === month + 1;
@@ -366,7 +387,7 @@
 	}
 
 	onMount(() => {
-		offcanvasEl = document.getElementById('sharedSidenav');
+		offcanvasEl = document.getElementById('sidenav');
 	});
 </script>
 
@@ -382,19 +403,18 @@
 		</div>
 	</div>
 {:else}
-	<div class="offcanvas offcanvas-start p-3" id="sharedSidenav" tabindex="-1">
+	<div class="offcanvas offcanvas-start p-3" id="sidenav" tabindex="-1">
 		<div class="offcanvas-header">
 			<button
 				type="button"
 				class="btn-close"
 				data-bs-dismiss="offcanvas"
-				data-bs-target="#sharedSidenav"
+				data-bs-target="#sidenav"
 				aria-label="Close"
 			></button>
 		</div>
 		<div class="d-flex flex-column h-100">
 			<Datepicker {bookmarkDay} />
-			<br />
 			<div class="search d-flex flex-column glass-shadow mb-2">
 				<form
 					onsubmit={(event) => {
@@ -405,6 +425,7 @@
 				>
 					<input
 						bind:value={searchQuery}
+						id="search-input-shared-mobile"
 						type="text"
 						class="form-control"
 						placeholder={$t('search.search')}
@@ -439,7 +460,7 @@
 											{ day: '2-digit', month: '2-digit', year: 'numeric' }
 										)}
 									</div>
-									<div class="text">{@html result.text}</div>
+									<div class="search-text">{@html result.text}</div>
 								</div>
 							</button>
 						{/each}
@@ -451,12 +472,43 @@
 		</div>
 	</div>
 
-	<div class="layout-read d-flex flex-row justify-content-between container-xxl">
-		{#if $alwaysShowSidenav}
-			<div class="sidenav p-3">
+	<div class="d-flex flex-column h-100">
+		<nav class="navbar navbar-expand-lg glass">
+			<div class="row w-100">
+				<div class="col-lg-4 col-sm-5 col d-flex flex-row justify-content-start align-items-center">
+					{#if !$alwaysShowSidenav}
+						<button
+							class="btn d-xl-none ms-1"
+							type="button"
+							data-bs-toggle="offcanvas"
+							data-bs-target="#sidenav"
+							aria-controls="sidenav"
+						><Fa icon={faBars} /></button>
+					{/if}
+
+					<div class="selectMode form-check form-switch d-flex flex-row align-items-center"></div>
+				</div>
+
+				<div class="col-lg-4 col-sm-2 col d-flex flex-row justify-content-center align-items-center">
+					<div class="full-logo d-flex align-items-center">
+						<img src={dailytxt} alt="" height="38px" class="user-select-none" />
+						<span class="dailytxt ms-2 user-select-none">DailyTxT</span>
+					</div>
+				</div>
+
+				<div class="col-lg-4 col-sm-5 col pe-0 d-flex flex-row justify-content-end">
+					<div class="d-flex flex-row align-items-center me-2">
+						<span class="badge bg-secondary">{$t('shareView.badge_read_only')}</span>
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		<div class="layout-read d-flex flex-row justify-content-between container-xxl">
+			{#if $alwaysShowSidenav}
+				<div class="sidenav p-3">
 				<div class="d-flex flex-column h-100">
 					<Datepicker {bookmarkDay} />
-					<br />
 					<div class="search d-flex flex-column glass-shadow mb-2">
 						<form
 							onsubmit={(event) => {
@@ -467,6 +519,7 @@
 						>
 							<input
 								bind:value={searchQuery}
+								id="search-input-shared-desktop"
 								type="text"
 								class="form-control"
 								placeholder={$t('search.search')}
@@ -501,7 +554,7 @@
 													{ day: '2-digit', month: '2-digit', year: 'numeric' }
 												)}
 											</div>
-											<div class="text">{@html result.text}</div>
+											<div class="search-text">{@html result.text}</div>
 										</div>
 									</button>
 								{/each}
@@ -512,11 +565,11 @@
 					</div>
 				</div>
 			</div>
-		{/if}
+			{/if}
 
-		{#if isVerificationRequired && !isShareVerified}
-			<div class="d-flex align-items-center justify-content-center h-100 p-3">
-				<div class="glass p-4 rounded-5 verification-box w-100">
+			{#if isVerificationRequired && !isShareVerified}
+				<div class="d-flex align-items-center justify-content-center h-100 p-3 flex-fill">
+					<div class="glass p-4 rounded-5 verification-box w-100">
 					<h4 class="mb-2">{$t('shareView.verification.title')}</h4>
 					<p class="text-muted mb-3">{$t('shareView.verification.description')}</p>
 
@@ -564,26 +617,10 @@
 					{#if verificationSuccess}
 						<div class="alert alert-success mt-3 mb-0" role="alert">{verificationSuccess}</div>
 					{/if}
-				</div>
-			</div>
-		{:else}
-			<div class="d-flex flex-column my-4 flex-fill overflow-y-auto" id="scrollArea">
-				<div class="d-flex justify-content-between align-items-center mb-3 px-2">
-					<div class="d-flex align-items-center gap-2">
-						{#if !$alwaysShowSidenav}
-							<button
-								type="button"
-								class="btn btn-secondary"
-								data-bs-toggle="offcanvas"
-								data-bs-target="#sharedSidenav"
-							>
-								☰
-							</button>
-						{/if}
-						<span class="fw-semibold">📖 DailyTxT</span>
-						<span class="badge bg-secondary">{$t('shareView.badge_read_only')}</span>
 					</div>
 				</div>
+			{:else}
+				<div class="d-flex flex-column my-4 flex-fill overflow-y-auto" id="scrollArea">
 
 				{#if isLoadingMonthForReading}
 					<div class="d-flex align-items-center justify-content-center h-100">
@@ -654,8 +691,9 @@
 						{/if}
 					{/each}
 				{/if}
-			</div>
-		{/if}
+				</div>
+			{/if}
+		</div>
 	</div>
 {/if}
 
@@ -680,13 +718,23 @@
 		max-width: 100%;
 	}
 
-	.sidenav {
-		min-width: 385px;
-		height: 100%;
+	.dailytxt {
+		font-size: 1.7rem;
+		font-weight: 700;
 	}
 
-	#sharedSidenav {
-		width: 385px;
+	.sidenav {
+		width: 380px;
+		min-width: 380px;
+		overflow-y: auto;
+		max-height: 100vh;
+		padding-right: 0.5rem;
+		box-sizing: border-box;
+	}
+
+	#sidenav {
+		overflow-y: auto;
+		width: 380px;
 		backdrop-filter: blur(8px);
 	}
 
@@ -740,10 +788,37 @@
 		align-items: center;
 	}
 
+	.date {
+		text-align: left;
+	}
+
+	.search-text {
+		flex-grow: 1;
+		overflow-wrap: anywhere;
+		border-left: 1px solid #68a1da;
+		margin-left: 1rem;
+		padding-left: 1rem;
+	}
+
+	#search-input-shared-mobile,
+	#search-input-shared-desktop {
+		border-bottom-left-radius: 0;
+	}
+
 	#search-button,
 	#search-button-desktop {
-		border-bottom-right-radius: 10px;
+		border-bottom-right-radius: 0;
 		border-top-right-radius: 10px;
+	}
+
+	:global(.datepicker) {
+		margin-bottom: 3rem;
+	}
+
+	@media (max-height: 800px) {
+		:global(.datepicker) {
+			margin-bottom: 1rem;
+		}
 	}
 
 	.verification-box {
@@ -913,7 +988,7 @@
 			padding-left: 0 !important;
 		}
 
-		#sharedSidenav {
+		#sidenav {
 			width: 95vw;
 		}
 	}
