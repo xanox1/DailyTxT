@@ -9,6 +9,7 @@
 	import Datepicker from '$lib/Datepicker.svelte';
 	import { cal, selectedDate } from '$lib/calendarStore.js';
 	import { alwaysShowSidenav, sameDate } from '$lib/helpers.js';
+	import { languageLoaded, readingMode, settings } from '$lib/settingsStore.js';
 	import * as bootstrap from 'bootstrap';
 	import { page } from '$app/state';
 	import { onMount, untrack } from 'svelte';
@@ -254,10 +255,10 @@
 
 		try {
 			const parsedUrl = new URL(rawUrl, window.location.origin);
-			const normalizedPath = parsedUrl.pathname.replace(/\/+$/, '');
+			const normalizedPath = parsedUrl.pathname.replace(/\/+$/, '').toLowerCase();
 			const isLogsDownloadEndpoint =
-				normalizedPath.endsWith('/logs/downloadFile') ||
-				normalizedPath.endsWith('/api/logs/downloadFile');
+				normalizedPath.endsWith('/logs/downloadfile') ||
+				normalizedPath.endsWith('/api/logs/downloadfile');
 
 			if (!isLogsDownloadEndpoint) {
 				return rawUrl;
@@ -273,7 +274,17 @@
 			sharedDownloadUrl.searchParams.set('uuid', uuid);
 			return sharedDownloadUrl.toString();
 		} catch {
-			return rawUrl;
+			const fallbackUuidMatch = String(rawUrl).match(/[?&]uuid=([^&#]+)/i);
+			const fallbackUuid = fallbackUuidMatch ? decodeURIComponent(fallbackUuidMatch[1]) : '';
+			const looksLikeLogsDownload = /(^|\/)(api\/)?logs\/downloadfile(?:\?|$)/i.test(String(rawUrl));
+			if (!looksLikeLogsDownload || !fallbackUuid) {
+				return rawUrl;
+			}
+
+			const sharedDownloadUrl = new URL(`${API_URL}/share/downloadFile`, window.location.origin);
+			sharedDownloadUrl.searchParams.set('token', token);
+			sharedDownloadUrl.searchParams.set('uuid', fallbackUuid);
+			return sharedDownloadUrl.toString();
 		}
 	}
 
@@ -387,6 +398,18 @@
 	}
 
 	onMount(() => {
+		settings.update((currentSettings) => {
+			const nextSettings = currentSettings || {};
+			if (nextSettings.firstDayOfWeek !== undefined) {
+				return nextSettings;
+			}
+			return {
+				...nextSettings,
+				firstDayOfWeek: 'monday'
+			};
+		});
+		languageLoaded.set(true);
+		readingMode.set(true);
 		offcanvasEl = document.getElementById('sidenav');
 	});
 </script>
@@ -476,15 +499,13 @@
 		<nav class="navbar navbar-expand-lg glass">
 			<div class="row w-100">
 				<div class="col-lg-4 col-sm-5 col d-flex flex-row justify-content-start align-items-center">
-					{#if !$alwaysShowSidenav}
-						<button
-							class="btn d-xl-none ms-1"
-							type="button"
-							data-bs-toggle="offcanvas"
-							data-bs-target="#sidenav"
-							aria-controls="sidenav"
-						><Fa icon={faBars} /></button>
-					{/if}
+					<button
+						class="btn ms-1"
+						type="button"
+						data-bs-toggle="offcanvas"
+						data-bs-target="#sidenav"
+						aria-controls="sidenav"
+					><Fa icon={faBars} /></button>
 
 					<div class="selectMode form-check form-switch d-flex flex-row align-items-center"></div>
 				</div>
