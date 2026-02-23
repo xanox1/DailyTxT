@@ -445,6 +445,12 @@
 		word-wrap: anywhere;
 	}
 
+	.text :global(img) {
+		max-width: 100%;
+		height: auto;
+		margin: 0.25rem 0;
+	}
+
 	.text :global(h1) {
 		font-size: 1.5rem;
 	}
