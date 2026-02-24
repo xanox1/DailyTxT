@@ -730,9 +730,11 @@ func SharedGetMarkedDays(w http.ResponseWriter, r *http.Request) {
 		"days_bookmarked": daysBookmarked,
 	})
 
+	email := ""
 	if required {
-		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash, userID), getClientIP(r), "access", r.URL.Path)
+		email = getVerifiedShareEmail(r, tokenHash, userID)
 	}
+	logShareAccess(userID, email, getClientIP(r), "access", r.URL.Path)
 }
 
 // SharedLoadMonthForReading returns decrypted diary entries for a month, using a share token.
@@ -866,9 +868,11 @@ func SharedLoadMonthForReading(w http.ResponseWriter, r *http.Request) {
 
 	utils.JSONResponse(w, http.StatusOK, result)
 
+	email := ""
 	if required {
-		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash, userID), getClientIP(r), "access", r.URL.Path)
+		email = getVerifiedShareEmail(r, tokenHash, userID)
 	}
+	logShareAccess(userID, email, getClientIP(r), "access", r.URL.Path)
 }
 
 // SharedSearch searches across all shared logs for a given search string.
@@ -1075,9 +1079,11 @@ func SharedSearch(w http.ResponseWriter, r *http.Request) {
 
 	utils.JSONResponse(w, http.StatusOK, results)
 
+	email := ""
 	if required {
-		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash, userID), getClientIP(r), "access", r.URL.Path)
+		email = getVerifiedShareEmail(r, tokenHash, userID)
 	}
+	logShareAccess(userID, email, getClientIP(r), "access", r.URL.Path)
 }
 
 // SharedDownloadFile decrypts and streams a file, using a share token.
@@ -1134,7 +1140,9 @@ func SharedDownloadFile(w http.ResponseWriter, r *http.Request) {
 		utils.Logger.Printf("Error writing shared file response: %v", err)
 	}
 
+	email := ""
 	if required {
-		logShareAccess(userID, getVerifiedShareEmail(r, tokenHash, userID), getClientIP(r), "access", r.URL.Path)
+		email = getVerifiedShareEmail(r, tokenHash, userID)
 	}
+	logShareAccess(userID, email, getClientIP(r), "access", r.URL.Path)
 }
