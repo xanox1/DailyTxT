@@ -48,6 +48,7 @@
 			class="html-preview p-1"
 			use:spoilerRevealAction={{
 				warningText: $t('markdown.spoiler.click_again_warning'),
+				privateWarningText: $t('markdown.private.click_again_warning'),
 				revealWindowMs: 3000
 			}}
 		>
@@ -85,6 +86,7 @@
 				class="modal-body"
 				use:spoilerRevealAction={{
 					warningText: $t('markdown.spoiler.click_again_warning'),
+					privateWarningText: $t('markdown.private.click_again_warning'),
 					revealWindowMs: 3000
 				}}
 			>
@@ -134,7 +136,7 @@
 	}
 
 	:global(.spoiler-warning) {
-		display: none;
+		display: flex;
 		position: absolute;
 		inset: 0;
 		align-items: center;
@@ -145,10 +147,6 @@
 		color: var(--bs-body-color);
 		background-color: rgba(0, 0, 0, 0.15);
 		border-radius: 0.375rem;
-	}
-
-	:global(.spoiler-block[data-armed='true'][data-revealed='false'] .spoiler-warning) {
-		display: flex;
 	}
 
 	:global(.spoiler-block[data-revealed='true'] .spoiler-content) {

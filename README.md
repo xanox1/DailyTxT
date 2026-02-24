@@ -71,6 +71,12 @@ Try the [live demo](https://dailytxt.phitux.de) 🚀
   hidden content
   :::
   ```
+- You can hide sections from shared view using:
+  ```md
+  :::private
+  this content is visible only in normal view
+  :::
+  ```
 
 ## Installation
 

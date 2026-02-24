@@ -2180,6 +2180,7 @@
 						class="text mt-2"
 						use:spoilerRevealAction={{
 							warningText: $t('markdown.spoiler.click_again_warning'),
+							privateWarningText: $t('markdown.private.click_again_warning'),
 							revealWindowMs: 3000
 						}}
 					>
@@ -2406,7 +2407,7 @@
 	}
 
 	.text :global(.spoiler-warning) {
-		display: none;
+		display: flex;
 		position: absolute;
 		inset: 0;
 		align-items: center;
@@ -2417,10 +2418,6 @@
 		color: var(--bs-body-color);
 		background-color: rgba(0, 0, 0, 0.15);
 		border-radius: 0.375rem;
-	}
-
-	.text :global(.spoiler-block[data-armed='true'][data-revealed='false'] .spoiler-warning) {
-		display: flex;
 	}
 
 	.text :global(.spoiler-block[data-revealed='true'] .spoiler-content) {

@@ -2,6 +2,8 @@ import { marked } from 'marked';
 
 let isConfigured = false;
 const spoilerTimers = new WeakMap();
+const defaultWarningText = 'Click once more within 3 seconds to reveal this spoiler.';
+const defaultPrivateWarningText = 'Click once more within 3 seconds to reveal this private section.';
 
 function configureMarkdown() {
 	if (isConfigured) {
@@ -31,26 +33,51 @@ function replaceSpoilerBlocks(markdownText) {
 	});
 }
 
-export function parseMarkdown(markdownText) {
+function replacePrivateBlocks(markdownText, isShared = false) {
+	return markdownText.replace(/:::private\s*\n([\s\S]*?)\n:::/g, (_match, privateContent) => {
+		if (isShared) {
+			return '';
+		} else {
+			const renderedContent = marked.parse((privateContent || '').trim());
+			return `<div class="spoiler-block private-block" data-revealed="false" data-armed="false" data-armed-until="0"><div class="spoiler-content">${renderedContent}</div><div class="spoiler-warning" aria-live="polite"></div></div>`;
+		}
+	});
+}
+
+export function parseMarkdown(markdownText, isShared = false) {
 	configureMarkdown();
 	const source = String(markdownText ?? '');
-	const withSpoilers = replaceSpoilerBlocks(source);
+	const withPrivate = replacePrivateBlocks(source, isShared);
+	const withSpoilers = replaceSpoilerBlocks(withPrivate);
 	return marked.parse(withSpoilers);
 }
 
 function clearArmedState(spoilerBlock) {
 	spoilerBlock.dataset.armed = 'false';
 	spoilerBlock.dataset.armedUntil = '0';
-	const warningEl = spoilerBlock.querySelector('.spoiler-warning');
-	if (warningEl) {
-		warningEl.textContent = '';
-	}
 
 	const timerId = spoilerTimers.get(spoilerBlock);
 	if (timerId) {
 		clearTimeout(timerId);
 		spoilerTimers.delete(spoilerBlock);
 	}
+}
+
+function getWarningTextForBlock(spoilerBlock, options = {}) {
+	if (spoilerBlock.classList.contains('private-block')) {
+		return options.privateWarningText || defaultPrivateWarningText;
+	}
+
+	return options.warningText || defaultWarningText;
+}
+
+function setInitialWarningText(containerNode, options = {}) {
+	containerNode.querySelectorAll('.spoiler-block[data-revealed="false"]').forEach((spoilerBlock) => {
+		const warningEl = spoilerBlock.querySelector('.spoiler-warning');
+		if (warningEl) {
+			warningEl.textContent = getWarningTextForBlock(spoilerBlock, options);
+		}
+	});
 }
 
 function armSpoiler(spoilerBlock, warningText, revealWindowMs) {
@@ -72,7 +99,8 @@ function armSpoiler(spoilerBlock, warningText, revealWindowMs) {
 export function revealSpoilerFromClick(
 	event,
 	options = {
-		warningText: 'Click once more within 3 seconds to reveal this spoiler.',
+		warningText: defaultWarningText,
+		privateWarningText: defaultPrivateWarningText,
 		revealWindowMs: 3000
 	}
 ) {
@@ -86,7 +114,7 @@ export function revealSpoilerFromClick(
 		return;
 	}
 
-	const warningText = options.warningText || 'Click once more within 3 seconds to reveal this spoiler.';
+	const warningText = getWarningTextForBlock(spoilerBlock, options);
 	const revealWindowMs = Number(options.revealWindowMs) || 3000;
 	const armedUntil = Number(spoilerBlock.dataset.armedUntil || '0');
 	const now = Date.now();
@@ -103,11 +131,13 @@ export function revealSpoilerFromClick(
 export function spoilerRevealAction(
 	node,
 	options = {
-		warningText: 'Click once more within 3 seconds to reveal this spoiler.',
+		warningText: defaultWarningText,
+		privateWarningText: defaultPrivateWarningText,
 		revealWindowMs: 3000
 	}
 ) {
 	let actionOptions = options;
+	setInitialWarningText(node, actionOptions);
 
 	const clickHandler = (event) => {
 		revealSpoilerFromClick(event, actionOptions);
@@ -118,6 +148,7 @@ export function spoilerRevealAction(
 	return {
 		update(newOptions) {
 			actionOptions = newOptions;
+			setInitialWarningText(node, actionOptions);
 		},
 		destroy() {
 			node.removeEventListener('click', clickHandler);

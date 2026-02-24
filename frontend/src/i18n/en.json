@@ -72,6 +72,9 @@
     "written_on": "Posted on:"
   },
   "markdown": {
+    "private": {
+      "click_again_warning": "Click once more within 3 seconds to reveal this private section."
+    },
     "spoiler": {
       "confirm": "This content is hidden as a spoiler. Reveal it?",
       "reveal_button": "Reveal spoiler",

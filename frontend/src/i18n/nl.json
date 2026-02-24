@@ -72,6 +72,9 @@
     "written_on": "Geplaatst op:"
   },
   "markdown": {
+    "private": {
+      "click_again_warning": "Klik nog één keer binnen 3 seconden om deze privésectie te tonen."
+    },
     "spoiler": {
       "confirm": "Deze inhoud is verborgen als spoiler. Wil je deze tonen?",
       "reveal_button": "Spoiler tonen",
